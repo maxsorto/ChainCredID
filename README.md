@@ -11,6 +11,8 @@ ChainCredID is a decentralized application (dApp) designed to provide secure and
 
 The smart contract for ChainCredID is deployed at `0x981F5a4F664A7c7cC601bEd121505B6d2fBD3C80` on the Scroll Layer 2 (Sepolia Testnet) network. You can verify the contract details and source code at [Sepolia ScrollScan](https://sepolia.scrollscan.dev/address/0x981f5a4f664a7c7cc601bed121505b6d2fbd3c80#code).
 
+You can check the sample schema we used on this project [here](https://scroll-sepolia.easscan.org/schema/view/0x6f0ae5ac9195bd29d2e9942d12d313d157da57ce56be88ab2c97bf94d39f6f5e).
+
 ## Access the Application
 
 ChainCredID is accessible through its dedicated portals:
