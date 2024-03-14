@@ -29,6 +29,6 @@ To interact with ChainCredID, visit the home page and choose the relevant portal
 
 For users wishing to have their rights attested, navigate to the user portal, where you can submit your requests. Admins can review and process these requests via the admin portal, leveraging the functionalities provided by the Ethereum Attestation Service to ensure each attestation's integrity and verifiability.
 
-## Support
+## Future Developments
 
-For any inquiries or support issues, please contact the ChainCredID team through our support channel at [support@chaincredid.dev](mailto:support@chaincredid.dev).
+Post-ETH LATAM Hackathon 2024, the ChainCredID team is committed to continuing the development and improvement of the platform. We aim to integrate more features, enhance user experience, and expand the scope of attestable rights, further contributing to the Ethereum community's growth and the broader blockchain-based digital identity management ecosystem.
