@@ -17,6 +17,10 @@
             margin: 0;
             padding: 20px;
         }
+        img.logo {
+            max-width: 25%; /* Adjust as per your logo's dimensions */
+            margin-bottom: 20px;
+        }
         button {
             background-color: #008cba;
             color: white;
@@ -46,13 +50,25 @@
             color: #3c763d;
             display: none;
         }
+        #disconnectWallet {
+            background-color: rgb(253, 110, 110);
+        }
     </style>
 </head>
 <body>
+    <img src="logo.png" alt="Company Logo" class="logo">
     <div id="instructions">
         Connect your wallet to verify your attestations for voting, drinking, or entering the country.
     </div>
     <button id="connectWallet">Connect Wallet</button>
+    <button id="addSepoliaTestnet" style="background-color: gray">Switch to Scroll L2</button>
+    <button id="disconnectWallet" style="display:none;">Disconnect Wallet</button>
+    <div id="actions" style="display:none;">
+        <button id="canVote">Can Vote?</button>
+        <button id="canDrink">Can Drink?</button>
+        <button id="canEnterCountry">Can Enter Country?</button>
+
+    </div>    
     <div id="actions" style="display:none;">
         <button id="canVote">Can Vote?</button>
         <button id="canDrink">Can Drink?</button>
@@ -63,12 +79,12 @@
     <script>
         const instructionsDiv = document.getElementById('instructions');
         const connectWalletButton = document.getElementById('connectWallet');
+        const disconnectWalletButton = document.getElementById('disconnectWallet');
         const actionsDiv = document.getElementById('actions');
         const canVoteButton = document.getElementById('canVote');
         const canDrinkButton = document.getElementById('canDrink');
         const canEnterCountryButton = document.getElementById('canEnterCountry');
         const resultDiv = document.getElementById('result');
-
 
         let selectedAddress;
 
@@ -85,6 +101,7 @@
                     console.log('is connected', selectedAddress);
                     actionsDiv.style.display = 'block';
                     connectWalletButton.style.display = 'none';
+                    disconnectWalletButton.style.display = 'block';
                     instructionsDiv.innerText = 'Select an action below to verify your attestation.';
                 } catch (error) {
                     resultDiv.innerText = 'Failed to connect wallet.';
@@ -94,6 +111,16 @@
                 resultDiv.innerText = 'Please install MetaMask!';
                 resultDiv.style.display = 'block';
             }
+        }
+
+        async function disconnectWallet() {
+            // Implementation for disconnecting the wallet
+            selectedAddress = null; // Reset selectedAddress
+            actionsDiv.style.display = 'none'; // Hide action buttons
+            disconnectWalletButton.style.display = 'none'; // Hide disconnect button
+            connectWalletButton.style.display = 'block'; // Show connect button
+            instructionsDiv.innerText = 'Connect your wallet to verify your attestations for voting, drinking, or entering the country.';
+            resultDiv.style.display = 'none'; // Hide result div if visible
         }
 
         async function checkAttestation(action) {
@@ -135,10 +162,42 @@
             }
         }
 
+        disconnectWalletButton.onclick = disconnectWallet;
         connectWalletButton.onclick = connectWallet;
         canVoteButton.onclick = () => checkAttestation('vote');
         canDrinkButton.onclick = () => checkAttestation('drink');
         canEnterCountryButton.onclick = () => checkAttestation('enterCountry');
+
+        document.getElementById('addSepoliaTestnet').addEventListener('click', async () => {
+            if (window.ethereum) {
+                try {
+                    // Request to switch to the Scroll Sepolia Testnet
+                    await ethereum.request({
+                        method: 'wallet_addEthereumChain',
+                        params: [{
+                            chainId: '0x8274f', // Hexadecimal representation of 534351
+                            chainName: 'Scroll Sepolia Testnet',
+                            nativeCurrency: {
+                                name: 'Sepolia Ether',
+                                symbol: 'SEP',
+                                decimals: 18,
+                            },
+                            rpcUrls: ['https://scroll-sepolia.blockpi.network/v1/rpc/public'],
+                            blockExplorerUrls: ['https://sepolia.scrollscan.com'],
+                        }],
+                    });
+                    // If the request succeeds, hide the button
+                    document.getElementById('addSepoliaTestnet').style.display = 'none';
+                } catch (addError) {
+                    console.error(addError);
+                    alert('Failed to add the Scroll Sepolia Testnet.');
+                }
+            } else {
+                alert('Ethereum provider (e.g., MetaMask) not found.');
+            }
+        });
+
+
     </script>
 </body>
 </html>
