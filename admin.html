@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Citizen Attestations</title>
+    <script src="https://cdn.ethers.io/lib/ethers-5.2.umd.min.js" type="application/javascript"></script>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            background-color: #f4f7f6;
+            margin: 0;
+            padding: 20px;
+        }
+        .form-input, .submit-button, .list, .loading-message {
+            width: 100%;
+            max-width: 400px;
+            margin: 10px 0;
+        }
+        .submit-button {
+            background-color: #008cba;
+            color: white;
+            padding: 10px;
+            border: none;
+            cursor: pointer;
+            border-radius: 5px;
+            transition: background-color 0.3s ease;
+        }
+        .submit-button:hover {
+            background-color: #005f73;
+        }
+        .list-item, .loading-message {
+            background-color: #dff0d8;
+            color: #3c763d;
+            padding: 10px;
+            margin: 5px 0;
+            border-radius: 5px;
+            text-align: center;
+        }
+        .loading-message {
+            background-color: #f0ad4e; /* Change to any color that signifies waiting/loading */
+            color: #fff;
+        }
+    </style>
+</head>
+<body>
+    <h2>Citizen Rights Attestations</h2>
+    <div>
+        <input type="text" id="walletAddress" class="form-input" placeholder="Wallet Address" required>
+        <div>
+            Can Vote:<br>
+            <input type="radio" id="canVoteYes" name="canVote" value="true"> Yes
+            <input type="radio" id="canVoteNo" name="canVote" value="false" checked> No<br>
+            Can Drink:<br>
+            <input type="radio" id="canDrinkYes" name="canDrink" value="true"> Yes
+            <input type="radio" id="canDrinkNo" name="canDrink" value="false" checked> No<br>
+            Can Enter Country:<br>
+            <input type="radio" id="canEnterCountryYes" name="canEnterCountry" value="true"> Yes
+            <input type="radio" id="canEnterCountryNo" name="canEnterCountry" value="false" checked> No
+        </div>
+        <button class="submit-button" id="submitRights">Attest Rights</button>
+    </div>
+    <div id="entriesList" class="list"></div>
+
+    <script>
+        const contractABI = [{"anonymous":false,"inputs":[{"indexed":true,"internalType":"address","name":"citizen","type":"address"}],"name":"Attestation","type":"event"},{"inputs":[{"internalType":"address","name":"_userAddress","type":"address"},{"internalType":"bool","name":"_canVote","type":"bool"},{"internalType":"bool","name":"_canDrink","type":"bool"},{"internalType":"bool","name":"_canEnterCountry","type":"bool"}],"name":"addCitizen","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"address","name":"_userAddress","type":"address"},{"internalType":"bool","name":"_canDrink","type":"bool"}],"name":"attestRightToDrink","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"address","name":"_userAddress","type":"address"},{"internalType":"bool","name":"_canEnterCountry","type":"bool"}],"name":"attestRightToEnterCountry","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"address","name":"_userAddress","type":"address"},{"internalType":"bool","name":"_canVote","type":"bool"}],"name":"attestRightToVote","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"address","name":"","type":"address"}],"name":"citizens","outputs":[{"internalType":"bool","name":"canVote","type":"bool"},{"internalType":"bool","name":"canDrink","type":"bool"},{"internalType":"bool","name":"canEnterCountry","type":"bool"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"address","name":"_citizen","type":"address"}],"name":"verifyRightToDrink","outputs":[{"internalType":"bool","name":"","type":"bool"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"address","name":"_citizen","type":"address"}],"name":"verifyRightToEnterCountry","outputs":[{"internalType":"bool","name":"","type":"bool"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"address","name":"_citizen","type":"address"}],"name":"verifyRightToVote","outputs":[{"internalType":"bool","name":"","type":"bool"}],"stateMutability":"view","type":"function"}];
+        // Replace with your deployed CitizenDatabase contract address
+        const contractAddress = '0x981F5a4F664A7c7cC601bEd121505B6d2fBD3C80';
+
+        async function submitRights() {
+            if (typeof window.ethereum === 'undefined') {
+                alert('Please install MetaMask to use this feature.');
+                return;
+            }
+
+            const provider = new ethers.providers.Web3Provider(window.ethereum);
+            await provider.send("eth_requestAccounts", []);
+            const signer = provider.getSigner();
+            const contract = new ethers.Contract(contractAddress, contractABI, signer);
+            const walletAddress = document.getElementById('walletAddress').value;
+
+            const canVote = document.querySelector('input[name="canVote"]:checked').value === "true";
+            const canDrink = document.querySelector('input[name="canDrink"]:checked').value === "true";
+            const canEnterCountry = document.querySelector('input[name="canEnterCountry"]:checked').value === "true";
+
+            displayLoadingMessage();
+
+            try {
+                await contract.addCitizen(walletAddress, canVote, canDrink, canEnterCountry).then((txResponse) => {
+                    txResponse.wait().then(() => {
+                        removeLoadingMessage();
+                        displayEntry(walletAddress, canVote, canDrink, canEnterCountry);
+                    });
+                });
+            } catch (error) {
+                console.error('Error submitting rights:', error);
+                alert('Failed to submit rights. See console for more details.');
+                removeLoadingMessage();
+            }
+        }
+
+        function displayEntry(walletAddress, canVote, canDrink, canEnterCountry) {
+            const entryDiv = document.createElement('div');
+            entryDiv.classList.add('list-item');
+            entryDiv.innerText = `Wallet: ${walletAddress}, Vote: ${canVote ? "Yes" : "No"}, Drink: ${canDrink ? "Yes" : "No"}, Enter Country: ${canEnterCountry ? "Yes" : "No"}`;
+            document.getElementById('entriesList').appendChild(entryDiv);
+        }
+
+        function displayLoadingMessage() {
+            const loadingDiv = document.createElement('div');
+            loadingDiv.classList.add('loading-message');
+            loadingDiv.id = 'loadingMessage';
+            loadingDiv.innerText = 'Processing transaction...';
+            document.body.insertBefore(loadingDiv, document.getElementById('entriesList'));
+        }
+
+        function removeLoadingMessage() {
+            const loadingDiv = document.getElementById('loadingMessage');
+            if (loadingDiv) {
+                loadingDiv.remove();
+            }
+        }
+
+        document.getElementById('submitRights').addEventListener('click', submitRights);
+    </script>
+</body>
+</html>

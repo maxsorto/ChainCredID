@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Attestation Verification</title>
+    <script src="https://cdn.ethers.io/lib/ethers-5.2.umd.min.js" type="application/javascript"></script>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            min-height: 100vh;
+            background-color: #f4f7f6;
+            margin: 0;
+            padding: 20px;
+        }
+        button {
+            background-color: #008cba;
+            color: white;
+            padding: 14px 20px;
+            margin: 10px 0;
+            border: none;
+            cursor: pointer;
+            border-radius: 5px;
+            transition: background-color 0.3s ease;
+        }
+        button:hover {
+            background-color: #005f73;
+        }
+        button:disabled {
+            background-color: #cccccc;
+            cursor: not-allowed;
+        }
+        #instructions {
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        #result {
+            margin-top: 20px;
+            padding: 10px;
+            border-radius: 5px;
+            background-color: #dff0d8;
+            color: #3c763d;
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div id="instructions">
+        Connect your wallet to verify your attestations for voting, drinking, or entering the country.
+    </div>
+    <button id="connectWallet">Connect Wallet</button>
+    <div id="actions" style="display:none;">
+        <button id="canVote">Can Vote?</button>
+        <button id="canDrink">Can Drink?</button>
+        <button id="canEnterCountry">Can Enter Country?</button>
+    </div>
+    <div id="result"></div>
+
+    <script>
+        const instructionsDiv = document.getElementById('instructions');
+        const connectWalletButton = document.getElementById('connectWallet');
+        const actionsDiv = document.getElementById('actions');
+        const canVoteButton = document.getElementById('canVote');
+        const canDrinkButton = document.getElementById('canDrink');
+        const canEnterCountryButton = document.getElementById('canEnterCountry');
+        const resultDiv = document.getElementById('result');
+
+
+        let selectedAddress;
+
+        // Replace with the ABI of your deployed CitizenDatabase contract
+        const contractABI = [{"anonymous":false,"inputs":[{"indexed":true,"internalType":"address","name":"citizen","type":"address"}],"name":"Attestation","type":"event"},{"inputs":[{"internalType":"address","name":"_userAddress","type":"address"},{"internalType":"bool","name":"_canVote","type":"bool"},{"internalType":"bool","name":"_canDrink","type":"bool"},{"internalType":"bool","name":"_canEnterCountry","type":"bool"}],"name":"addCitizen","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"address","name":"_userAddress","type":"address"},{"internalType":"bool","name":"_canDrink","type":"bool"}],"name":"attestRightToDrink","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"address","name":"_userAddress","type":"address"},{"internalType":"bool","name":"_canEnterCountry","type":"bool"}],"name":"attestRightToEnterCountry","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"address","name":"_userAddress","type":"address"},{"internalType":"bool","name":"_canVote","type":"bool"}],"name":"attestRightToVote","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"address","name":"","type":"address"}],"name":"citizens","outputs":[{"internalType":"bool","name":"canVote","type":"bool"},{"internalType":"bool","name":"canDrink","type":"bool"},{"internalType":"bool","name":"canEnterCountry","type":"bool"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"address","name":"_citizen","type":"address"}],"name":"verifyRightToDrink","outputs":[{"internalType":"bool","name":"","type":"bool"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"address","name":"_citizen","type":"address"}],"name":"verifyRightToEnterCountry","outputs":[{"internalType":"bool","name":"","type":"bool"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"address","name":"_citizen","type":"address"}],"name":"verifyRightToVote","outputs":[{"internalType":"bool","name":"","type":"bool"}],"stateMutability":"view","type":"function"}];
+        // Replace with your deployed CitizenDatabase contract address
+        const contractAddress = '0x981F5a4F664A7c7cC601bEd121505B6d2fBD3C80';
+
+        async function connectWallet() {
+            if (typeof window.ethereum !== 'undefined') {
+                try {
+                    const accounts = await ethereum.request({ method: 'eth_requestAccounts' });
+                    selectedAddress = accounts[0];
+                    console.log('is connected', selectedAddress);
+                    actionsDiv.style.display = 'block';
+                    connectWalletButton.style.display = 'none';
+                    instructionsDiv.innerText = 'Select an action below to verify your attestation.';
+                } catch (error) {
+                    resultDiv.innerText = 'Failed to connect wallet.';
+                    resultDiv.style.display = 'block';
+                }
+            } else {
+                resultDiv.innerText = 'Please install MetaMask!';
+                resultDiv.style.display = 'block';
+            }
+        }
+
+        async function checkAttestation(action) {
+            if (!selectedAddress) return;
+
+            const provider = new ethers.providers.Web3Provider(window.ethereum);
+            const signer = await provider.getSigner();
+            console.log('signer', signer);
+            const contract = new ethers.Contract(contractAddress, contractABI, signer);
+            resultDiv.style.display = 'none';
+            console.log('checking', selectedAddress);
+            try {
+                let attested;
+                let actionVerb; // To store the action in a human-readable format
+                switch(action) {
+                    case 'vote':
+                        attested = await contract.verifyRightToVote(selectedAddress);
+                        actionVerb = 'vote';
+                        break;
+                    case 'drink':
+                        attested = await contract.verifyRightToDrink(selectedAddress);
+                        actionVerb = 'drink';
+                        break;
+                    case 'enterCountry':
+                        attested = await contract.verifyRightToEnterCountry(selectedAddress);
+                        actionVerb = 'enter the country';
+                        break;
+                    // Add more cases here if necessary
+                }
+
+                // Update the result message based on the attestation result and the action
+                resultDiv.innerText = attested ? `This person is allowed to ${actionVerb}.` : "No, attestation not found.";
+                resultDiv.style.display = 'block';
+            } catch (error) {
+                console.error("Failed to execute transaction:", error);
+                console.log("Error data:", error.data);
+                resultDiv.innerText = "Error checking attestation.";
+                resultDiv.style.display = 'block';
+            }
+        }
+
+        connectWalletButton.onclick = connectWallet;
+        canVoteButton.onclick = () => checkAttestation('vote');
+        canDrinkButton.onclick = () => checkAttestation('drink');
+        canEnterCountryButton.onclick = () => checkAttestation('enterCountry');
+    </script>
+</body>
+</html>
