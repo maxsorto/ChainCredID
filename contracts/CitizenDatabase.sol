@@ -3,118 +3,119 @@ pragma solidity ^0.8.24;
 
 import { IEAS, AttestationRequest, AttestationRequestData } from "@ethereum-attestation-service/eas-contracts/contracts/IEAS.sol";
 import { NO_EXPIRATION_TIME, EMPTY_UID } from "@ethereum-attestation-service/eas-contracts/contracts/Common.sol";
+import { FunctionsClient } from "@chainlink/contracts/src/v0.8/functions/dev/v1_0_0/FunctionsClient.sol";
+import { ConfirmedOwner } from "@chainlink/contracts/src/v0.8/shared/access/ConfirmedOwner.sol";
+import { FunctionsRequest } from "@chainlink/contracts/src/v0.8/functions/dev/v1_0_0/libraries/FunctionsRequest.sol";
 
-contract CitizenDatabase {
-
+contract CitizenDatabase is FunctionsClient, ConfirmedOwner {
     struct Citizen {
         bool canVote;
         bool canDrink;
         bool canEnterCountry;
-       
     }
 
     mapping(address => Citizen) public citizens;
 
     // Address of the Ethereum Attestation Service contract
-    address easAddress = 0xaEF4103A04090071165F78D45D83A0C0782c2B2a;
-    
+    address easAddress;
+
     // Schema for attestation
-    bytes32 schema = 0x6f0ae5ac9195bd29d2e9942d12d313d157da57ce56be88ab2c97bf94d39f6f5e;
+    bytes32 schema;
 
     event Attestation(address indexed citizen);
+    event Response(bytes32 indexed requestId, string character, bytes response, bytes err);
+    
+    constructor(address _router, address _easAddress, bytes32 _schema, bytes32 _donId) FunctionsClient(_router) ConfirmedOwner(msg.sender) {
+        easAddress = _easAddress;
+        schema = _schema;
+        donId = _donId;
+    }
 
-    // Function to add a new citizen to the database
-    function addCitizen(
+    function attestRights(
         address _userAddress,
         bool _canVote,
         bool _canDrink,
         bool _canEnterCountry
-        
-    ) public {
+    ) external onlyOwner {
         citizens[_userAddress] = Citizen(_canVote, _canDrink, _canEnterCountry);
+
+        // Attest rights using Chainlink Functions
+        sendRequest(_userAddress, _canVote, _canDrink, _canEnterCountry);
+        
+        emit Attestation(_userAddress);
     }
 
-    // Function to attest right to vote
-    function attestRightToVote(address _userAddress, bool _canVote) public {
-        require(!citizens[_userAddress].canVote); // Ensure citizenship is not already attested
-        citizens[_userAddress].canVote = _canVote; // Attest right to vote
+    function attestRightToVote(address _userAddress, bool _canVote) external onlyOwner {
+        citizens[_userAddress].canVote = _canVote;
 
-        // Attest citizenship using Ethereum Attestation Service
-        IEAS(easAddress).attest(
-            AttestationRequest({
-                schema: schema,
-                data: AttestationRequestData({
-                    recipient: _userAddress,
-                    expirationTime: NO_EXPIRATION_TIME,
-                    revocable: false,
-                    refUID: EMPTY_UID,
-                    data: abi.encode(_userAddress), // Include citizen's address in the attestation data
-                    value: 0 // No value/ETH
-                })
-            })
-        );
+        // Attest right to vote using Chainlink Functions
+        sendRequest(_userAddress, _canVote, false, false);
 
         emit Attestation(_userAddress);
     }
 
-    // Function to attest right to drink
-    function attestRightToDrink(address _userAddress, bool _canDrink) public {
-        require(!citizens[_userAddress].canDrink); // Ensure right to drink is not already attested
-        citizens[_userAddress].canDrink = _canDrink; // Attest right to drink
+    function attestRightToDrink(address _userAddress, bool _canDrink) external onlyOwner {
+        citizens[_userAddress].canDrink = _canDrink;
 
-        // Attest citizenship using Ethereum Attestation Service
-        IEAS(easAddress).attest(
-            AttestationRequest({
-                schema: schema,
-                data: AttestationRequestData({
-                    recipient: _userAddress,
-                    expirationTime: NO_EXPIRATION_TIME,
-                    revocable: false,
-                    refUID: EMPTY_UID,
-                    data: abi.encode(_userAddress), // Include citizen's address in the attestation data
-                    value: 0 // No value/ETH
-                })
-            })
-        );
+        // Attest right to drink using Chainlink Functions
+        sendRequest(_userAddress, false, _canDrink, false);
 
         emit Attestation(_userAddress);
     }
 
-    // Function to attest right to enter country
-    function attestRightToEnterCountry(address _userAddress, bool _canEnterCountry) public  {
-        require(!citizens[_userAddress].canEnterCountry); // Ensure right to enter country is not already attested
-        citizens[_userAddress].canEnterCountry = _canEnterCountry; // Attest right to enter country
+    function attestRightToEnterCountry(address _userAddress, bool _canEnterCountry) external onlyOwner {
+        citizens[_userAddress].canEnterCountry = _canEnterCountry;
 
-        // Attest citizenship using Ethereum Attestation Service
-        IEAS(easAddress).attest(
-            AttestationRequest({
-                schema: schema,
-                data: AttestationRequestData({
-                    recipient: _userAddress,
-                    expirationTime: NO_EXPIRATION_TIME,
-                    revocable: false,
-                    refUID: EMPTY_UID,
-                    data: abi.encode(_userAddress), // Include citizen's address in the attestation data
-                    value: 0 // No value/ETH
-                })
-            })
-        );
+        // Attest right to enter country using Chainlink Functions
+        sendRequest(_userAddress, false, false, _canEnterCountry);
 
         emit Attestation(_userAddress);
     }
 
-    // Function to verify right to vote
-    function verifyRightToVote(address _citizen) public view returns (bool) {
-        return citizens[_citizen].canVote;
+    function sendRequest(
+        address _userAddress,
+        bool _canVote,
+        bool _canDrink,
+        bool _canEnterCountry
+    ) private {
+        string memory source = string(
+            abi.encodePacked(
+                "function sendRequest(address, bool, bool, bool) internal {",
+                "emit Attestation(_userAddress);"
+            )
+        );
+
+        FunctionsRequest.Request memory req;
+        req.initializeRequestForInlineJavaScript(source);
+        req.setArgs(new string ); // No arguments needed
+
+        bytes32 subscriptionId = 0x123; // Placeholder subscription ID
+        uint32 callbackGasLimit = 300000; // Gas limit for the callback
+
+        bytes memory data = abi.encode(_userAddress, _canVote, _canDrink, _canEnterCountry);
+
+        s_lastRequestId = _sendRequest(
+            req.encodeCBOR(),
+            subscriptionId,
+            callbackGasLimit,
+            donId,
+            data
+        );
     }
 
-    // Function to verify right to drink
-    function verifyRightToDrink(address _citizen) public view returns (bool) {
-        return citizens[_citizen].canDrink;
-    }
+    bytes32 public s_lastRequestId;
+    bytes public s_lastResponse;
+    bytes public s_lastError;
 
-    // Function to verify right to enter country
-    function verifyRightToEnterCountry(address _citizen) public view returns (bool) {
-        return citizens[_citizen].canEnterCountry;
+    function fulfillRequest(bytes32 requestId, bytes memory response, bytes memory err) internal override {
+        if (requestId != s_lastRequestId) {
+            revert UnexpectedRequestID(requestId); // Check if request IDs match
+        }
+        // Update the contract's state variables with the response and any errors
+        s_lastResponse = response;
+        s_lastError = err;
+
+        // Emit an event to log the response
+        emit Response(requestId, string(response), s_lastResponse, s_lastError);
     }
 }
