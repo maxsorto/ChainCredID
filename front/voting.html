@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Voting Hub - Citizen Rights Attestation</title>
+    <link rel="icon" href="assets/images/logo.png" type="image/png"> 
+    <script src="https://cdn.ethers.io/lib/ethers-5.2.umd.min.js" type="application/javascript"></script>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            background-color: #d3d3d3;
+            margin: 0;
+            padding: 20px;
+        }
+        img.logo {
+            max-width: 25%; /* Adjust as per your logo's dimensions */
+            margin-bottom: 20px;
+        }
+        .container {
+            text-align: center;
+        }
+        h1 {
+            color: #333;
+        }
+        .vote-option {
+            background-color: #f4f4f4;
+            padding: 10px;
+            border-radius: 5px;
+            margin: 10px 0;
+            cursor: pointer;
+            transition: transform 0.1s ease;
+        }
+        .vote-option:hover {
+            transform: scale(1.05);
+        }
+        button {
+            background-color: #008cba;
+            color: white;
+            padding: 10px 15px;
+            border: none;
+            cursor: pointer;
+            border-radius: 5px;
+            margin-top: 20px;
+            transition: background-color 0.3s ease;
+        }
+        button:hover {
+            background-color: #005f73;
+        }
+        button:disabled {
+            background-color: #cccccc;
+            cursor: not-allowed;
+        }
+        #result {
+            margin-top: 20px;
+            padding: 10px;
+            border-radius: 5px;
+            background-color: #dff0d8;
+            color: #3c763d;
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <img src="assets/images/logo.png" alt="Company Logo" class="logo">
+    <div class="container">
+        <h1>Voting Hub</h1>
+        <button id="connectWallet">Connect Wallet</button>
+        <button id="readPublicKey" style="display:none;">Read Public Key</button>
+        <div id="publicKeyDisplay" style="display:none; margin-top: 10px;"></div>
+    
+        <div id="voteOptions" class="vote-options-container">
+            <!-- Vote options will be dynamically added here -->
+        </div>
+        <button id="castVote" disabled>Cast Vote</button>
+        <div id="result"></div>
+    </div>
+
+    <script>
+        const voteOptionsContainer = document.getElementById('voteOptions');
+        const castVoteButton = document.getElementById('castVote');
+        const connectWalletButton = document.getElementById('connectWallet');
+        const readPublicKeyButton = document.getElementById('readPublicKey');
+        const publicKeyDisplay = document.getElementById('publicKeyDisplay');
+        let selectedOption = null;
+        let selectedAddress = null;
+
+        // Mock data for vote options
+        const voteOptions = [
+            { id: 'option1', name: 'Proposal A' },
+            { id: 'option2', name: 'Proposal B' },
+            { id: 'option3', name: 'Proposal C' }
+        ];
+
+        function addVoteOption(option) {
+            const optionDiv = document.createElement('div');
+            optionDiv.classList.add('vote-option');
+            optionDiv.id = option.id;
+            optionDiv.innerText = option.name;
+            optionDiv.onclick = () => selectOption(option.id);
+            voteOptionsContainer.appendChild(optionDiv);
+        }
+
+        function selectOption(optionId) {
+            if (selectedOption) {
+                document.getElementById(selectedOption).style.backgroundColor = '#f4f4f4';
+            }
+            selectedOption = optionId;
+            document.getElementById(optionId).style.backgroundColor = '#c0e0f4';
+            castVoteButton.disabled = false;
+        }
+
+        function castVote() {
+            if (!selectedOption) {
+                alert('Please select an option to vote for.');
+                return;
+            }
+            // Here you would add the code to interact with the smart contract to cast the vote
+            console.log(`Vote cast for option: ${selectedOption}`);
+            // Show result or confirmation
+            document.getElementById('result').innerText = `Vote for ${selectedOption} has been cast.`;
+            document.getElementById('result').style.display = 'block';
+        }
+
+        // Add the vote options to the page
+        voteOptions.forEach(addVoteOption);
+        castVoteButton.onclick = castVote;
+
+        async function getPublicKey(signer) {
+            // This is a method of retrieving the public key by signing a message
+            const message = 'Sign this message to get your public key';
+            try {
+                const signature = await signer.signMessage(message);
+                const publicKey = ethers.utils.verifyMessage(message, signature);
+                publicKeyDisplay.innerText = `Public Key: ${publicKey}`;
+                publicKeyDisplay.style.display = 'block';
+            } catch (error) {
+                console.error('Error retrieving public key:', error);
+                publicKeyDisplay.innerText = 'Error retrieving public key. See console for more details.';
+                publicKeyDisplay.style.display = 'block';
+            }
+        }
+
+        async function connectWallet() {
+            if (typeof window.ethereum !== 'undefined') {
+                try {
+                    const accounts = await ethereum.request({ method: 'eth_requestAccounts' });
+                    selectedAddress = accounts[0];
+                    console.log('Wallet connected', selectedAddress);
+                    // Additional actions upon successful connection
+                    readPublicKeyButton.style.display = 'block';
+                } catch (error) {
+                    console.error('Failed to connect wallet:', error);
+                }
+            } else {
+                console.error('Please install MetaMask!');
+            }
+        }
+
+        connectWalletButton.onclick = connectWallet;
+
+        readPublicKeyButton.onclick = async () => {
+            if (!selectedAddress) {
+                console.error('Please connect your wallet first.');
+                return;
+            }
+            const provider = new ethers.providers.Web3Provider(window.ethereum);
+            const signer = provider.getSigner();
+            await getPublicKey(signer);
+        };
+    </script>
+</body>
+</html>
