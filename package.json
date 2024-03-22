@@ -1,0 +1,26 @@
+{
+  "name": "chaincredid",
+  "version": "1.0.0",
+  "description": "ChainCredID is a decentralized application (dApp) designed to provide secure and verifiable attestation services on the Ethereum blockchain, leveraging the advanced capabilities of Scroll L2 for scalability and efficiency, alongside the Ethereum Attestation Service (EAS) for robust attestation processing.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/maxsorto/ChainCredID.git"
+  },
+  "author": "Max Sorto / Jorge Ramirez",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/maxsorto/ChainCredID/issues"
+  },
+  "homepage": "https://github.com/maxsorto/ChainCredID#readme",
+  "dependencies": {
+    "express": "^4.19.1",
+    "hardhat": "^2.22.2"
+  },
+  "devDependencies": {
+    "@nomicfoundation/hardhat-toolbox": "^5.0.0"
+  }
+}
