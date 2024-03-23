@@ -17,6 +17,17 @@ contract VotingContract is FunctionsClient, ConfirmedOwner {
     bytes public s_lastResponse;
     bytes public s_lastError;
 
+    // State variables to store the vote counts for each candidate
+    mapping(string => uint256) public votes;
+
+    mapping(bytes32 => string) private requestIdToCandidate;
+
+
+
+    // Router address and DON ID should be set according to your Chainlink Functions setup
+    address private router;
+    bytes32 private donID;
+
     // Custom error type
     error UnexpectedRequestID(bytes32 requestId);
 
@@ -28,9 +39,6 @@ contract VotingContract is FunctionsClient, ConfirmedOwner {
         bytes err
     );
 
-    // Router address and DON ID should be set according to your Chainlink Functions setup
-    address private router;
-    bytes32 private donID;
 
     // JavaScript source code adapted for the provided API
     string source =
@@ -46,11 +54,13 @@ contract VotingContract is FunctionsClient, ConfirmedOwner {
     // Callback gas limit - adjust based on expected computation
     uint32 private gasLimit = 300000;
 
-    // State variables to store the vote counts for each candidate
-    mapping(string => uint256) public votes;
+
 
     // Event to log vote submissions
     event VoteSubmitted(address indexed voter, string candidate);
+    event VoteCountUpdated(string candidate, uint256 newVoteCount);
+    event RequestSent(bytes32 requestId, string candidate);
+    event RequestFulfilled(bytes32 requestId, uint256 finalVoteCount);
 
     /**
      * @notice Initializes the contract with the Chainlink router address
@@ -67,6 +77,27 @@ contract VotingContract is FunctionsClient, ConfirmedOwner {
     function vote(string calldata candidate) external {
         votes[candidate]++;
         emit VoteSubmitted(msg.sender, candidate);
+    }
+
+        /**
+     * @notice Sends a request to calculate final votes for a candidate using Chainlink Functions
+     * @param candidateName The name of the candidate
+     * @return requestId The ID of the request
+     */
+    function calculateFinalVotes(string calldata candidateName) external onlyOwner returns (bytes32 requestId) {
+        FunctionsRequest.Request memory req = FunctionsRequest.Request({
+            url: "https://chaincredid.pages.dev/vote-multipliers", // Your API endpoint
+            path: candidateName, // Assuming the API can filter based on the candidate name in the path or query
+            method: FunctionsRequest.HttpMethod.GET,
+            requestBody: "", // Empty if not needed
+            headers: new string 
+        });
+
+        // Send the request with the Chainlink Functions client
+        s_lastRequestId = req.sendRequest(router, gasLimit, donID);
+        requestIdToCandidate[s_lastRequestId] = candidateName;
+
+        return s_lastRequestId;
     }
 
     /**
@@ -119,7 +150,15 @@ contract VotingContract is FunctionsClient, ConfirmedOwner {
         // Assuming the API response is directly decodable to a string
         // The real logic for processing and updating votes based on the response goes here
         // This example directly logs the received string for simplicity
-        string memory candidate = string(response); 
+        string memory candidate = string(response);
+
+        // Update the contract's state with the new vote count
+        string memory candidateName = requestIdToCandidate[requestId];
+
+        // votes[candidateName] = finalVoteCount;
+
+        // Emit an event with the new vote count
+        emit VoteCountUpdated(candidateName /*finalVoteCount*/); 
 
         // Emit an event to log the response
         emit Response(requestId, candidate, s_lastResponse, s_lastError);
