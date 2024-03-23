@@ -17,6 +17,9 @@ contract VotingContract is FunctionsClient, ConfirmedOwner {
     bytes public s_lastResponse;
     bytes public s_lastError;
 
+    // Custom error type
+    error UnexpectedRequestID(bytes32 requestId);
+
     // Event to log responses
     event Response(
         bytes32 indexed requestId,
@@ -105,8 +108,8 @@ contract VotingContract is FunctionsClient, ConfirmedOwner {
         bytes memory err
     ) internal override {
         if (s_lastRequestId != requestId) {
-            revert;
-            // revert UnexpectedRequestID(requestId); // Check if request IDs match
+            
+            revert UnexpectedRequestID(requestId); // Check if request IDs match
         }
 
         // Update the contract's state variables with the response and any errors
