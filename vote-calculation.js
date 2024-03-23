@@ -22,8 +22,8 @@ console.log(`Data fetched for validation:`, data);
 // we encode a single vote to be added to the candidate's total.
 const votesToAdd = 1;
 
-let voteCount = 0;
-voteCount += 1;
+// let voteCount = 0;
+// voteCount += 1;
 
 // Encode and return the number of votes to add.
-return Functions.encodeUint256(votesToAdd,voteCount);
+return Functions.encodeUint256(votesToAdd);
