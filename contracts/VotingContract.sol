@@ -1,6 +1,8 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.23;
 
+import "@chainlink/contracts/src/v0.6/ChainlinkClient.sol";
+
 import {FunctionsClient} from "@chainlink/contracts/src/v0.8/functions/dev/v1_0_0/FunctionsClient.sol";
 import {ConfirmedOwner} from "@chainlink/contracts/src/v0.8/shared/access/ConfirmedOwner.sol";
 import {FunctionsRequest} from "@chainlink/contracts/src/v0.8/functions/dev/v1_0_0/libraries/FunctionsRequest.sol";
@@ -84,21 +86,10 @@ contract VotingContract is FunctionsClient, ConfirmedOwner {
      * @param candidateName The name of the candidate
      * @return requestId The ID of the request
      */
-    function calculateFinalVotes(string calldata candidateName) external onlyOwner returns (bytes32 requestId) {
-        FunctionsRequest.Request memory req = FunctionsRequest.Request({
-            url: "https://chaincredid.pages.dev/vote-multipliers", // Your API endpoint
-            path: candidateName, // Assuming the API can filter based on the candidate name in the path or query
-            method: FunctionsRequest.HttpMethod.GET,
-            requestBody: "", // Empty if not needed
-            headers: new string 
-        });
 
-        // Send the request with the Chainlink Functions client
-        s_lastRequestId = req.sendRequest(router, gasLimit, donID);
-        requestIdToCandidate[s_lastRequestId] = candidateName;
 
-        return s_lastRequestId;
-    }
+
+
 
     /**
      * @notice Sends a request to fetch vote counts from the external API with optional arguments
@@ -158,7 +149,7 @@ contract VotingContract is FunctionsClient, ConfirmedOwner {
         // votes[candidateName] = finalVoteCount;
 
         // Emit an event with the new vote count
-        emit VoteCountUpdated(candidateName /*finalVoteCount*/); 
+        // emit VoteCountUpdated(candidateName /*finalVoteCount*/); 
 
         // Emit an event to log the response
         emit Response(requestId, candidate, s_lastResponse, s_lastError);
