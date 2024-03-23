@@ -2,25 +2,46 @@
 pragma solidity ^0.8.23;
 
 import {FunctionsClient} from "@chainlink/contracts/src/v0.8/functions/dev/v1_0_0/FunctionsClient.sol";
-import {FunctionsRequest} from "@chainlink/contracts/src/v0.8/functions/dev/v1_0_0/libraries/FunctionsRequest.sol";
-// import {FunctionsClient} from "@chainlink/contracts/src/v0.8/dev/v0.8/FunctionsClient.sol";
 import {ConfirmedOwner} from "@chainlink/contracts/src/v0.8/shared/access/ConfirmedOwner.sol";
-// import {FunctionsRequest} from "@chainlink/contracts/src/v0.8/dev/v0.8/libraries/FunctionsRequest.sol";
-
-
-//import "@chainlink/contracts/src/v0.8/vrf/VRFConsumerBase.sol";
-
-/**
- * Request testnet LINK and ETH here: https://faucets.chain.link/
- * Find information on LINK Token Contracts and get the latest ETH and LINK faucets here: https://docs.chain.link/resources/link-token-contracts/
- */
+import {FunctionsRequest} from "@chainlink/contracts/src/v0.8/functions/dev/v1_0_0/libraries/FunctionsRequest.sol";
 
 /**
  * @title VotingContract
- * @notice A contract for voting using Chainlink functions
+ * @notice A contract for voting using Chainlink functions, adapted to query vote counts from a custom API.
  */
 contract VotingContract is FunctionsClient, ConfirmedOwner {
     using FunctionsRequest for FunctionsRequest.Request;
+
+    // State variables to store the last request ID, response, and error
+    bytes32 public s_lastRequestId;
+    bytes public s_lastResponse;
+    bytes public s_lastError;
+
+    // Event to log responses
+    event Response(
+        bytes32 indexed requestId,
+        string candidate,
+        bytes response,
+        bytes err
+    );
+
+    // Router address and DON ID should be set according to your Chainlink Functions setup
+    address private router;
+    bytes32 private donID;
+
+    // JavaScript source code adapted for the provided API
+    string source =
+        "const apiResponse = await Functions.makeHttpRequest({"
+        "url: `https://chaincredid.pages.dev/vote-counts`"
+        "});"
+        "if (apiResponse.error) {"
+        "throw Error('Request failed');"
+        "}"
+        "const { data } = apiResponse;"
+        "return Functions.encodeString(JSON.stringify(data));"; // Assuming the API returns JSON
+
+    // Callback gas limit - adjust based on expected computation
+    uint32 private gasLimit = 300000;
 
     // State variables to store the vote counts for each candidate
     mapping(string => uint256) public votes;
@@ -28,70 +49,76 @@ contract VotingContract is FunctionsClient, ConfirmedOwner {
     // Event to log vote submissions
     event VoteSubmitted(address indexed voter, string candidate);
 
-    // Router address - Hardcoded for Mumbai
-    address router = 0x6E2dc0F9DB014aE19888F539E59285D2Ea04244C;
-
-    // JavaScript source code to fetch vote counts from an external API
-    string constant source =
-        "const apiResponse = await fetch('https://example.com/vote-counts');"
-        "if (!apiResponse.ok) {"
-        "  throw Error('Request failed');"
-        "}"
-        "const data = await apiResponse.json();"
-        "return data;";
-
-    // Callback gas limit
-    uint32 gasLimit = 300000;
-
-    // donID - Hardcoded for Mumbai
-    bytes32 donID =
-        0x66756e2d706f6c79676f6e2d6d756d6261692d31000000000000000000000000;
-
     /**
-     * @notice Initializes the contract with the Chainlink router address and sets the contract owner
+     * @notice Initializes the contract with the Chainlink router address
      */
-    constructor() FunctionsClient(router) ConfirmedOwner(msg.sender) {}
+    constructor(address _router, bytes32 _donID) FunctionsClient(_router) ConfirmedOwner(msg.sender) {
+        router = _router;
+        donID = _donID;
+    }
 
     /**
      * @notice Allows users to vote for a candidate
      * @param candidate The name of the candidate to vote for
      */
     function vote(string calldata candidate) external {
-        // Increment the vote count for the selected candidate
         votes[candidate]++;
-
-        // Emit an event to log the vote submission
         emit VoteSubmitted(msg.sender, candidate);
     }
 
     /**
-     * @notice Fetches the latest vote counts from the external API using Chainlink functions
+     * @notice Sends a request to fetch vote counts from the external API with optional arguments
+     * @param subscriptionId The ID for the Chainlink subscription
+     * @param args The arguments to pass to the JavaScript function, if needed
+     * @return requestId The ID of the request
      */
-    function fetchVoteCounts() external onlyOwner {
+    function sendRequest(
+        uint64 subscriptionId,
+        string[] calldata args
+    ) external onlyOwner returns (bytes32 requestId) {
         FunctionsRequest.Request memory req;
         req.initializeRequestForInlineJavaScript(source); // Initialize the request with JS code
+        if (args.length > 0) {
+            req.setArgs(args); // Set the arguments for the request, if any
+        }
 
-        // Send the request to fetch vote counts and store the request ID
-        _sendRequest(req.encodeCBOR(), 0, gasLimit, donID); // Setting subscriptionId to 0 as we're not using subscriptions
+        // Send the request and store the request ID
+        s_lastRequestId = _sendRequest(
+            req.encodeCBOR(),
+            subscriptionId,
+            gasLimit,
+            donID
+        );
+
+        return s_lastRequestId;
     }
 
     /**
      * @notice Callback function for fulfilling a request
      * @param requestId The ID of the request to fulfill
-     * @param response The HTTP response data
-     * @param err Any errors from the Functions request
+     * @param response The data returned by the external API
+     * @param err Any errors returned during the request
      */
     function fulfillRequest(
         bytes32 requestId,
         bytes memory response,
-        bytes memory  err 
+        bytes memory err
     ) internal override {
-        // Update the vote counts based on the response from the external API
-        (uint256[] memory counts) = abi.decode(response, (uint256[]));
-
-        for (uint256 i = 0; i < counts.length; i++) {
-            // Assuming candidates are indexed from 0
-            votes[string(abi.encodePacked("Candidate", uint8(i)))] = counts[i];
+        if (s_lastRequestId != requestId) {
+            revert;
+            // revert UnexpectedRequestID(requestId); // Check if request IDs match
         }
+
+        // Update the contract's state variables with the response and any errors
+        s_lastResponse = response;
+        s_lastError = err;
+
+        // Assuming the API response is directly decodable to a string
+        // The real logic for processing and updating votes based on the response goes here
+        // This example directly logs the received string for simplicity
+        string memory candidate = string(response); 
+
+        // Emit an event to log the response
+        emit Response(requestId, candidate, s_lastResponse, s_lastError);
     }
 }
