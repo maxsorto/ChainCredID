@@ -1,68 +1,97 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.0;
+pragma solidity ^0.8.23;
 
-import "@chainlink/contracts/src/v0.8/vrf/VRFConsumerBase.sol";
+import {FunctionsClient} from "@chainlink/contracts/src/v0.8/functions/dev/v1_0_0/FunctionsClient.sol";
+import {FunctionsRequest} from "@chainlink/contracts/src/v0.8/functions/dev/v1_0_0/libraries/FunctionsRequest.sol";
+// import {FunctionsClient} from "@chainlink/contracts/src/v0.8/dev/v0.8/FunctionsClient.sol";
+import {ConfirmedOwner} from "@chainlink/contracts/src/v0.8/shared/access/ConfirmedOwner.sol";
+// import {FunctionsRequest} from "@chainlink/contracts/src/v0.8/dev/v0.8/libraries/FunctionsRequest.sol";
 
-contract VotingContract is VRFConsumerBase {
-    uint256 public proposalCount;
-    mapping(uint256 => uint256) public votes; // proposal ID => vote count
 
-    address public owner;
-    bytes32 public requestId;
-    uint256 public randomResult;
+//import "@chainlink/contracts/src/v0.8/vrf/VRFConsumerBase.sol";
 
-    event ProposalCreated(uint256 proposalId, string description);
-    event Voted(uint256 proposalId, address voter);
+/**
+ * Request testnet LINK and ETH here: https://faucets.chain.link/
+ * Find information on LINK Token Contracts and get the latest ETH and LINK faucets here: https://docs.chain.link/resources/link-token-contracts/
+ */
 
-    constructor(address _vrfCoordinator, address _linkToken, bytes32 _keyHash, uint256 _fee)
-        VRFConsumerBase(_vrfCoordinator, _linkToken)
-    {
-        owner = msg.sender;
-        proposalCount = 0;
-        setKeyHash(_keyHash);
-        setFee(_fee);
+/**
+ * @title VotingContract
+ * @notice A contract for voting using Chainlink functions
+ */
+contract VotingContract is FunctionsClient, ConfirmedOwner {
+    using FunctionsRequest for FunctionsRequest.Request;
+
+    // State variables to store the vote counts for each candidate
+    mapping(string => uint256) public votes;
+
+    // Event to log vote submissions
+    event VoteSubmitted(address indexed voter, string candidate);
+
+    // Router address - Hardcoded for Mumbai
+    address router = 0x6E2dc0F9DB014aE19888F539E59285D2Ea04244C;
+
+    // JavaScript source code to fetch vote counts from an external API
+    string constant source =
+        "const apiResponse = await fetch('https://example.com/vote-counts');"
+        "if (!apiResponse.ok) {"
+        "  throw Error('Request failed');"
+        "}"
+        "const data = await apiResponse.json();"
+        "return data;";
+
+    // Callback gas limit
+    uint32 gasLimit = 300000;
+
+    // donID - Hardcoded for Mumbai
+    bytes32 donID =
+        0x66756e2d706f6c79676f6e2d6d756d6261692d31000000000000000000000000;
+
+    /**
+     * @notice Initializes the contract with the Chainlink router address and sets the contract owner
+     */
+    constructor() FunctionsClient(router) ConfirmedOwner(msg.sender) {}
+
+    /**
+     * @notice Allows users to vote for a candidate
+     * @param candidate The name of the candidate to vote for
+     */
+    function vote(string calldata candidate) external {
+        // Increment the vote count for the selected candidate
+        votes[candidate]++;
+
+        // Emit an event to log the vote submission
+        emit VoteSubmitted(msg.sender, candidate);
     }
 
-    modifier onlyOwner() {
-        require(msg.sender == owner, "Only contract owner can call this function");
-        _;
+    /**
+     * @notice Fetches the latest vote counts from the external API using Chainlink functions
+     */
+    function fetchVoteCounts() external onlyOwner {
+        FunctionsRequest.Request memory req;
+        req.initializeRequestForInlineJavaScript(source); // Initialize the request with JS code
+
+        // Send the request to fetch vote counts and store the request ID
+        _sendRequest(req.encodeCBOR(), 0, gasLimit, donID); // Setting subscriptionId to 0 as we're not using subscriptions
     }
 
-    function createProposal(string memory _description) external onlyOwner {
-        proposalCount++;
-        emit ProposalCreated(proposalCount, _description);
-    }
+    /**
+     * @notice Callback function for fulfilling a request
+     * @param requestId The ID of the request to fulfill
+     * @param response The HTTP response data
+     * @param err Any errors from the Functions request
+     */
+    function fulfillRequest(
+        bytes32 requestId,
+        bytes memory response,
+        bytes memory  err 
+    ) internal override {
+        // Update the vote counts based on the response from the external API
+        (uint256[] memory counts) = abi.decode(response, (uint256[]));
 
-    function vote(uint256 _proposalId) external {
-        require(_proposalId <= proposalCount && _proposalId > 0, "Invalid proposal ID");
-        votes[_proposalId]++;
-        emit Voted(_proposalId, msg.sender);
-    }
-
-    function getRandomNumber() external onlyOwner returns (bytes32 requestId) {
-        require(LINK.balanceOf(address(this)) >= fee, "Not enough LINK tokens");
-        return requestRandomness(keyHash, fee);
-    }
-
-    function fulfillRandomness(bytes32 _requestId, uint256 _randomness) internal override {
-        requestId = _requestId;
-        randomResult = _randomness;
-    }
-
-    function getWinner() external view onlyOwner returns (uint256) {
-        require(randomResult > 0, "Random number not generated yet");
-        return randomResult % proposalCount + 1;
-    }
-
-    function withdrawLink() external onlyOwner {
-        require(LINK.transfer(owner, LINK.balanceOf(address(this))), "Failed to transfer LINK to owner");
-    }
-
-    function setKeyHash(bytes32 _keyHash) public onlyOwner {
-        keyHash = _keyHash;
-    }
-
-    function setFee(uint256 _fee) public onlyOwner {
-        fee = _fee;
+        for (uint256 i = 0; i < counts.length; i++) {
+            // Assuming candidates are indexed from 0
+            votes[string(abi.encodePacked("Candidate", uint8(i)))] = counts[i];
+        }
     }
 }

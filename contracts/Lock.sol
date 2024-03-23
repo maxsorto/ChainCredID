@@ -3,6 +3,7 @@ pragma solidity ^0.8.24;
 
 // Uncomment this line to use console.log
 // import "hardhat/console.sol";
+//import "@chainlink/contracts/src/v0.8/vrf/VRFConsumerBase.sol";
 
 contract Lock {
     uint public unlockTime;
