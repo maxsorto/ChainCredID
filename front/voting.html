@@ -263,7 +263,7 @@
                     const votingContract = new ethers.Contract(contractAddress, contractABI, signer);
 
                     // Set the duration for the voting period in minutes
-                    const voteMinutes = 60; // Example: 60 minutes
+                    const voteMinutes = 5; // Example: 60 minutes
 
                     // Call the startVote function on your contract
                     const tx = await votingContract.startVote(voteMinutes);
