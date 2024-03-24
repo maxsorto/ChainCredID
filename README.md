@@ -40,7 +40,7 @@ For our Citizen Database, we utilized Chainlink to automate the voting periods.
 
 Voting is initiated from the front end, with a set duration for the voting process. Remarkably, Chainlink Automations manage the voting period automatically, eliminating the need for manual intervention.
 
-### Addresses
+### Chainlink Autommation Addresses
 
 - **Upkeep Address:** `0xfd4a3A7533C52402259d25edcF0Ff876E8C3b153`
 - **Upkeep ID:** `51587618327586771612208838368581969863669885174738854649399751226007644174500`
@@ -62,16 +62,15 @@ We aimed to integrate this with our Ethereum Attestations Service on Scroll. How
 
 ## Development and Future Plans
 
-Our commits demonstrate our successful integration of Chainlink Automations, though we continue to explore other Chainlink services. We even managed to set up our own Chainlink Node on Google Cloud. Given the time constraints and the associated costs (running a Chainlink node on Google is expensive), our ambitions remain high for fully leveraging Chainlink Functions to connect to a database and further enhance our dApp's features.
+Our commits demonstrate our successful integration of Chainlink Automations, though we continue to explore other Chainlink services. We even managed to set up our own Chainlink Node on Google Cloud. Given the time constraints and the associated costs (Google Cloud is expensive), our ambitions remain high for fully leveraging Chainlink Functions to connect to a database and further enhance our dApp's features.
 
 We are committed to advancing our project, hopeful that it will attract government interest.
 
 ### Chainlink Node Running on Google Cloud
 
-> ![Chainlink Node running on Google Cloud](https://imgur.com/a/GhXjBCr)
+> ![Chainlink Node running on Google Cloud](https://www.dropbox.com/scl/fi/2uuxavp7ocfuzwsgwbiaz/Screenshot-2024-03-22-at-9.10.13-AM.png?rlkey=7zxhh3uqw8uq9tq22zp16v7j0&dl=0)
 >
-> 
-> ![Cost of Running Chainlink Node](https://imgur.com/a/zeLayun)
+
 
 
 
