@@ -47,7 +47,7 @@ Voting is initiated from the front end, with a set duration for the voting proce
 
 ### Chainlink Autommation Addresses
 
-- **Upkeep Address:** `0x618d658DB39E21619511eFe3aECD1922D6a4D60A`
+- **Upkeep Address:** `0xc15F94B42F86f7c549c396A2AA1616e1167A5D25`
 - **Voting Contract Address (ETH SEPOLIA):** `0xf8e81D47203A594245E36C48e151709F0C19fBe8`
 
 ## Benefits of Using Chainlink Automation
