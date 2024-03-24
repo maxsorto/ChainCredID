@@ -283,10 +283,18 @@
             const optionDiv = document.createElement('div');
             optionDiv.classList.add('vote-option');
             optionDiv.id = option.id;
+            // Use the `option.name` property directly to set the attribute
+            optionDiv.setAttribute('data-candidate-name', option.name);
             optionDiv.innerText = option.name;
-            optionDiv.onclick = () => selectOption(option.id);
+            optionDiv.onclick = () => selectOption(optionDiv); // Pass the element itself to the selectOption function
             voteOptionsContainer.appendChild(optionDiv);
         }
+
+        // Clear existing options before adding new ones
+        voteOptionsContainer.innerHTML = '';
+
+        // Now append vote options using the modified `addVoteOption` function
+        voteOptions.forEach(addVoteOption);
 
         function selectOption(optionElement) {
             // Extract the candidate's name from the data-candidate-name attribute
