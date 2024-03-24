@@ -23,7 +23,7 @@ ChainCredID is accessible through its dedicated portals:
 - **Admin Portal**: [Admin Portal](https://chaincredid.pages.dev/admin)
 
 - **VotingHub**: [VotingHub](https://chaincredid.pages.dev/voting)
-  Important VotingHub Chainlink Upkeep is working. Which is why StartVoting button display a message "Voting Already Active". Which means it's working properly! Check the images below or the Console. 
+
 
   
 ## Overview
@@ -72,8 +72,6 @@ We are committed to advancing our project, hopeful that it will attract governme
 ### Chainlink Node Running on Google Cloud
 
 > ![Chainlink Node running on Google Cloud](https://github.com/maxsorto/ChainCredID/blob/4efe22ab317d711e7e21604fc118e40f23082551/front/assets/images/chainlinkNode.png)
->![UpkeepWorks! VotingAlreadyActive](https://github.com/maxsorto/ChainCredID/blob/3eaed8326c44a6dbe8e9b2e897a833bd4c63b94e/front/assets/images/VotingActive.png)
-> ![VotingAlreadyActive](https://github.com/maxsorto/ChainCredID/blob/3eaed8326c44a6dbe8e9b2e897a833bd4c63b94e/front/assets/images/VotingISActive.png)
 
 
 
