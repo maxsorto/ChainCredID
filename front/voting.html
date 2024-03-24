@@ -279,16 +279,34 @@
             }
         });
 
+
         function addVoteOption(option) {
             const optionDiv = document.createElement('div');
             optionDiv.classList.add('vote-option');
-            optionDiv.id = option.id;
-            // Use the `option.name` property directly to set the attribute
-            optionDiv.setAttribute('data-candidate-name', option.name);
+            optionDiv.setAttribute('data-candidate-name', option.name); // Store the candidate's name
             optionDiv.innerText = option.name;
-            optionDiv.onclick = () => selectOption(optionDiv); // Pass the element itself to the selectOption function
+            optionDiv.onclick = () => selectOption(optionDiv); // Attach the click event to selectOption
             voteOptionsContainer.appendChild(optionDiv);
         }
+
+        function selectOption(optionElement) {
+            const candidateName = optionElement.getAttribute('data-candidate-name');
+            if (selectedOption) {
+                // Remove the highlight from the previously selected option
+                const previouslySelectedOption = document.querySelector('.vote-option.selected');
+                if (previouslySelectedOption) {
+                    previouslySelectedOption.classList.remove('selected');
+                    previouslySelectedOption.style.backgroundColor = ''; // Reset background color
+                }
+            }
+            selectedOption = candidateName; // Set the selected option to the candidate's name
+            optionElement.classList.add('selected');
+            optionElement.style.backgroundColor = '#c0e0f4'; // Highlight the selected option
+            castVoteButton.disabled = false; // Enable the Cast Vote button
+        }
+
+
+
 
         // Clear existing options before adding new ones
         voteOptionsContainer.innerHTML = '';
@@ -296,18 +314,7 @@
         // Now append vote options using the modified `addVoteOption` function
         voteOptions.forEach(addVoteOption);
 
-        function selectOption(optionElement) {
-            // Extract the candidate's name from the data-candidate-name attribute
-            const candidateName = optionElement.getAttribute('data-candidate-name');
 
-            if (selectedOption) {
-                document.getElementById(selectedOption).style.backgroundColor = '#f4f4f4';
-            }
-
-            selectedOption = candidateName; // Store the candidate's name as the selected option
-            optionElement.style.backgroundColor = '#c0e0f4'; // Highlight the selected option
-            castVoteButton.disabled = false; // Enable the Cast Vote button
-        }
 
 
         async function castVote() {
