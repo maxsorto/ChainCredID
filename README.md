@@ -68,7 +68,7 @@ We are committed to advancing our project, hopeful that it will attract governme
 
 ### Chainlink Node Running on Google Cloud
 
-> ![Chainlink Node running on Google Cloud](https://www.dropbox.com/scl/fi/2uuxavp7ocfuzwsgwbiaz/Screenshot-2024-03-22-at-9.10.13-AM.png?rlkey=7zxhh3uqw8uq9tq22zp16v7j0&dl=0)
+> ![Chainlink Node running on Google Cloud](front/assets/images/chainlinkNode.png)
 >
 
 
