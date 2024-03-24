@@ -68,9 +68,9 @@ We are committed to advancing our project, hopeful that it will attract governme
 
 ### Chainlink Node Running on Google Cloud
 
-> [Insert image of the cost for running the node for a couple of days, using the Google Credits provided for a free trial.]
-> ![Description of the image](URL_of_the_image)
 > ![Chainlink Node running on Google Cloud](https://imgur.com/a/GhXjBCr)
+>
+> 
 > ![Cost of Running Chainlink Node](https://imgur.com/a/zeLayun)
 
 
