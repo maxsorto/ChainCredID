@@ -6,6 +6,7 @@ ChainCredID is a decentralized application (dApp) designed to provide secure and
 
 - **Scroll L2**: A layer 2 scaling solution for Ethereum that enhances transaction speed and reduces costs, making it ideal for dApps requiring high throughput.
 - **Ethereum Attestation Service (EAS)**: A decentralized protocol for creating, storing, and verifying off-chain data with on-chain attestations, providing a secure and immutable verification mechanism.
+- **Chainlink Automations**: Automate your smart contract with Chainlink’s hyper-reliable Automation network.
 
 ## Contract Address
 
@@ -30,6 +31,54 @@ ChainCredID offers a user-friendly interface allowing individuals to have variou
 To interact with ChainCredID, visit the home page and choose the relevant portal based on your role (user or admin). Ensure you have a compatible Ethereum wallet (e.g., MetaMask) connected to the Sepolia test network for transactions.
 
 For users wishing to have their rights attested, navigate to the user portal, where you can submit your requests. Admins can review and process these requests via the admin portal, leveraging the functionalities provided by the Ethereum Attestation Service to ensure each attestation's integrity and verifiability.
+
+# Citizen Database Project
+
+## Overview
+
+For our Citizen Database, we utilized Chainlink to automate the voting periods.
+
+Voting is initiated from the front end, with a set duration for the voting process. Remarkably, Chainlink Automations manage the voting period automatically, eliminating the need for manual intervention.
+
+### Addresses
+
+- **Upkeep Address:** `0xfd4a3A7533C52402259d25edcF0Ff876E8C3b153`
+- **Upkeep ID:** `51587618327586771612208838368581969863669885174738854649399751226007644174500`
+- **Voting Contract Address (ETH SEPOLIA):** `0x9108484E28FFb83F538a570C3a8af5E4210Db9c5`
+
+## Benefits of Using Chainlink Automation
+
+- **Decentralization:** Enhances security and reliability by eliminating centralized points of failure.
+- **Efficiency:** Saves time and reduces the DevOps workload through optimized infrastructure for smart contract execution.
+- **Security:** Bolsters protocol security by signing on-chain transactions via the Chainlink Automation Network, thus avoiding the exposure of private keys.
+- **Cost Efficiency:** Lowers gas fees and maintains them within predictable ranges.
+- **Reliability:** Features a redesigned algorithm for dependable execution of high-frequency functions.
+- **Scheduling:** Offers a no-code UI for the timely scheduling of smart contract upkeep jobs, ideal for managing voting periods.
+- **Off-chain Computation Improvements:** Minimizes reverts and conserves funds with an enhanced off-chain simulation process.
+
+## Integration with Ethereum Attestations Service
+
+We aimed to integrate this with our Ethereum Attestations Service on Scroll. However, Chainlink Automations have not yet been introduced to the Scroll network. We plan to utilize Chainlink Automation for attestations in the future. We implemented a Voting contract on Ethereum Sepolia to enhance our dApp's functionalities and demonstrate the application of Chainlink Automation in voting processes. Integrating Chainlink Automation for attestation expiration presents challenges, as it typically responds to on-chain state changes, whereas attestation expiration depends on time rather than state.
+
+## Development and Future Plans
+
+Our commits demonstrate our successful integration of Chainlink Automations, though we continue to explore other Chainlink services. We even managed to set up our own Chainlink Node on Google Cloud. Given the time constraints and the associated costs (running a Chainlink node on Google is expensive), our ambitions remain high for fully leveraging Chainlink Functions to connect to a database and further enhance our dApp's features.
+
+We are committed to advancing our project, hopeful that it will attract government interest.
+
+### Chainlink Node Running on Google Cloud
+
+> [Insert image of the cost for running the node for a couple of days, using the Google Credits provided for a free trial.]
+> ![Description of the image](URL_of_the_image)
+> ![Chainlink Node running on Google Cloud](https://imgur.com/a/GhXjBCr)
+> ![Cost of Running Chainlink Node](https://imgur.com/a/zeLayun)
+
+
+
+## Acknowledgements
+
+Finally, we express our gratitude for this engaging opportunity. The support from the sponsors has been invaluable, and we appreciate their responsiveness to our frequent communications. The experience at ETH Latam was thoroughly enjoyable, and we look forward to participating in future events. Let's continue to innovate and build together!
+
 
 ## Future Developments
 
