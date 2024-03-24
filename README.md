@@ -68,7 +68,7 @@ We are committed to advancing our project, hopeful that it will attract governme
 
 ### Chainlink Node Running on Google Cloud
 
-> ![Chainlink Node running on Google Cloud](front/assets/images/chainlinkNode.png)
+> ![Chainlink Node running on Google Cloud](https://github.com/maxsorto/ChainCredID/blob/4efe22ab317d711e7e21604fc118e40f23082551/front/assets/images/chainlinkNode.png)
 >
 
 
