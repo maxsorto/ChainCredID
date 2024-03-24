@@ -1,10 +1,11 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Voting Hub - Citizen Rights Attestation</title>
-    <link rel="icon" href="assets/images/logo.png" type="image/png"> 
+    <link rel="icon" href="assets/images/logo.png" type="image/png">
     <script src="https://cdn.ethers.io/lib/ethers-5.2.umd.min.js" type="application/javascript"></script>
     <style>
         body {
@@ -16,16 +17,21 @@
             margin: 0;
             padding: 20px;
         }
+
         img.logo {
-            max-width: 25%; /* Adjust as per your logo's dimensions */
+            max-width: 25%;
+            /* Adjust as per your logo's dimensions */
             margin-bottom: 20px;
         }
+
         .container {
             text-align: center;
         }
+
         h1 {
             color: #333;
         }
+
         .vote-option {
             background-color: #f4f4f4;
             padding: 10px;
@@ -34,9 +40,11 @@
             cursor: pointer;
             transition: transform 0.1s ease;
         }
+
         .vote-option:hover {
             transform: scale(1.05);
         }
+
         button {
             background-color: #008cba;
             color: white;
@@ -47,13 +55,16 @@
             margin-top: 20px;
             transition: background-color 0.3s ease;
         }
+
         button:hover {
             background-color: #005f73;
         }
+
         button:disabled {
             background-color: #cccccc;
             cursor: not-allowed;
         }
+
         #result {
             margin-top: 20px;
             padding: 10px;
@@ -64,6 +75,7 @@
         }
     </style>
 </head>
+
 <body>
     <img src="assets/images/logo.png" alt="Company Logo" class="logo">
     <div class="container">
@@ -71,148 +83,19 @@
         <button id="connectWallet">Connect Wallet</button>
         <button id="readPublicKey" style="display:none;">Read Public Key</button>
         <div id="publicKeyDisplay" style="display:none; margin-top: 10px;"></div>
-    
+
         <div id="voteOptions" class="vote-options-container">
             <!-- Vote options will be dynamically added here -->
         </div>
-        <button id="castVote" disabled>Cast Vote</button>
+        <button id="castVote">Cast Vote</button>
+
+        <button id="startVoteButton">Start Voting</button>
+
+
         <div id="result"></div>
     </div>
 
     <script>
-
-        const contractAddress = "0x9108484e28ffb83f538a570c3a8af5e4210db9c5";
-        const contractABI = [
-        [
-	{
-		"anonymous": false,
-		"inputs": [
-			{
-				"indexed": true,
-				"internalType": "address",
-				"name": "voter",
-				"type": "address"
-			},
-			{
-				"indexed": false,
-				"internalType": "string",
-				"name": "candidate",
-				"type": "string"
-			}
-		],
-		"name": "VoteSubmitted",
-		"type": "event"
-	},
-	{
-		"inputs": [
-			{
-				"internalType": "bytes",
-				"name": "",
-				"type": "bytes"
-			}
-		],
-		"name": "checkUpkeep",
-		"outputs": [
-			{
-				"internalType": "bool",
-				"name": "upkeepNeeded",
-				"type": "bool"
-			},
-			{
-				"internalType": "bytes",
-				"name": "",
-				"type": "bytes"
-			}
-		],
-		"stateMutability": "view",
-		"type": "function"
-	},
-	{
-		"inputs": [
-			{
-				"internalType": "bytes",
-				"name": "",
-				"type": "bytes"
-			}
-		],
-		"name": "performUpkeep",
-		"outputs": [],
-		"stateMutability": "nonpayable",
-		"type": "function"
-	},
-	{
-		"inputs": [
-			{
-				"internalType": "uint256",
-				"name": "voteMinutes",
-				"type": "uint256"
-			}
-		],
-		"name": "startVote",
-		"outputs": [],
-		"stateMutability": "nonpayable",
-		"type": "function"
-	},
-	{
-		"inputs": [
-			{
-				"internalType": "string",
-				"name": "candidate",
-				"type": "string"
-			}
-		],
-		"name": "vote",
-		"outputs": [],
-		"stateMutability": "nonpayable",
-		"type": "function"
-	},
-	{
-		"inputs": [],
-		"name": "voteEndTime",
-		"outputs": [
-			{
-				"internalType": "uint256",
-				"name": "",
-				"type": "uint256"
-			}
-		],
-		"stateMutability": "view",
-		"type": "function"
-	},
-	{
-		"inputs": [
-			{
-				"internalType": "string",
-				"name": "",
-				"type": "string"
-			}
-		],
-		"name": "votes",
-		"outputs": [
-			{
-				"internalType": "uint256",
-				"name": "",
-				"type": "uint256"
-			}
-		],
-		"stateMutability": "view",
-		"type": "function"
-	},
-	{
-		"inputs": [],
-		"name": "votingLive",
-		"outputs": [
-			{
-				"internalType": "bool",
-				"name": "",
-				"type": "bool"
-			}
-		],
-		"stateMutability": "view",
-		"type": "function"
-	}
-]
-        ];
         const voteOptionsContainer = document.getElementById('voteOptions');
         const castVoteButton = document.getElementById('castVote');
         const connectWalletButton = document.getElementById('connectWallet');
@@ -221,46 +104,262 @@
         let selectedOption = null;
         let selectedAddress = null;
 
+        const contractAddress = "0x9108484e28ffb83f538a570c3a8af5e4210db9c5";
+        const contractABI = [
+            {
+                "anonymous": false,
+                "inputs": [
+                    {
+                        "indexed": true,
+                        "internalType": "address",
+                        "name": "voter",
+                        "type": "address"
+                    },
+                    {
+                        "indexed": false,
+                        "internalType": "string",
+                        "name": "candidate",
+                        "type": "string"
+                    }
+                ],
+                "name": "VoteSubmitted",
+                "type": "event"
+            },
+            {
+                "inputs": [
+                    {
+                        "internalType": "bytes",
+                        "name": "",
+                        "type": "bytes"
+                    }
+                ],
+                "name": "checkUpkeep",
+                "outputs": [
+                    {
+                        "internalType": "bool",
+                        "name": "upkeepNeeded",
+                        "type": "bool"
+                    },
+                    {
+                        "internalType": "bytes",
+                        "name": "",
+                        "type": "bytes"
+                    }
+                ],
+                "stateMutability": "view",
+                "type": "function"
+            },
+            {
+                "inputs": [
+                    {
+                        "internalType": "bytes",
+                        "name": "",
+                        "type": "bytes"
+                    }
+                ],
+                "name": "performUpkeep",
+                "outputs": [],
+                "stateMutability": "nonpayable",
+                "type": "function"
+            },
+            {
+                "inputs": [
+                    {
+                        "internalType": "uint256",
+                        "name": "voteMinutes",
+                        "type": "uint256"
+                    }
+                ],
+                "name": "startVote",
+                "outputs": [],
+                "stateMutability": "nonpayable",
+                "type": "function"
+            },
+            {
+                "inputs": [
+                    {
+                        "internalType": "string",
+                        "name": "candidate",
+                        "type": "string"
+                    }
+                ],
+                "name": "vote",
+                "outputs": [],
+                "stateMutability": "nonpayable",
+                "type": "function"
+            },
+            {
+                "inputs": [],
+                "name": "voteEndTime",
+                "outputs": [
+                    {
+                        "internalType": "uint256",
+                        "name": "",
+                        "type": "uint256"
+                    }
+                ],
+                "stateMutability": "view",
+                "type": "function"
+            },
+            {
+                "inputs": [
+                    {
+                        "internalType": "string",
+                        "name": "",
+                        "type": "string"
+                    }
+                ],
+                "name": "votes",
+                "outputs": [
+                    {
+                        "internalType": "uint256",
+                        "name": "",
+                        "type": "uint256"
+                    }
+                ],
+                "stateMutability": "view",
+                "type": "function"
+            },
+            {
+                "inputs": [],
+                "name": "votingLive",
+                "outputs": [
+                    {
+                        "internalType": "bool",
+                        "name": "",
+                        "type": "bool"
+                    }
+                ],
+                "stateMutability": "view",
+                "type": "function"
+            }
+        ]
+
         // Mock data for vote options
         const voteOptions = [
-            { id: 'option1', name: 'Proposal A' },
-            { id: 'option2', name: 'Proposal B' },
-            { id: 'option3', name: 'Proposal C' }
+            { id: 'option1', name: 'Elon Musk' },
+            { id: 'option2', name: 'Vitalik Buterin' },
         ];
+
+        voteOptions.forEach(option => {
+            const optionDiv = document.createElement('div');
+            optionDiv.classList.add('vote-option');
+            optionDiv.id = option.id;
+            optionDiv.setAttribute('data-candidate-name', option.name); // Store the candidate's name
+            optionDiv.innerText = option.name;
+            optionDiv.onclick = () => selectOption(optionDiv); // Pass the element itself to the selectOption function
+            voteOptionsContainer.appendChild(optionDiv);
+        });
+
+
+
+
+        document.getElementById('startVoteButton').addEventListener('click', async () => {
+            if (typeof window.ethereum !== 'undefined') {
+                try {
+                    const provider = new ethers.providers.Web3Provider(window.ethereum);
+                    await provider.send("eth_requestAccounts", []);
+                    const signer = provider.getSigner();
+                    const votingContract = new ethers.Contract(contractAddress, contractABI, signer);
+
+                    // Set the duration for the voting period in minutes
+                    const voteMinutes = 60; // Example: 60 minutes
+
+                    // Call the startVote function on your contract
+                    const tx = await votingContract.startVote(voteMinutes);
+                    await tx.wait();
+
+                    alert('Voting has started successfully!');
+                } catch (error) {
+                    console.error('Failed to start voting:', error);
+                    alert('Failed to start voting. See console for more details.');
+                }
+            } else {
+                alert('Ethereum wallet is not connected. Please install MetaMask or another wallet.');
+            }
+        });
+
 
         function addVoteOption(option) {
             const optionDiv = document.createElement('div');
             optionDiv.classList.add('vote-option');
-            optionDiv.id = option.id;
+            optionDiv.setAttribute('data-candidate-name', option.name); // Store the candidate's name
             optionDiv.innerText = option.name;
-            optionDiv.onclick = () => selectOption(option.id);
+            optionDiv.onclick = () => selectOption(optionDiv); // Attach the click event to selectOption
             voteOptionsContainer.appendChild(optionDiv);
         }
 
-        function selectOption(optionId) {
+        function selectOption(optionElement) {
+            const candidateName = optionElement.getAttribute('data-candidate-name');
             if (selectedOption) {
-                document.getElementById(selectedOption).style.backgroundColor = '#f4f4f4';
+                // Remove the highlight from the previously selected option
+                const previouslySelectedOption = document.querySelector('.vote-option.selected');
+                if (previouslySelectedOption) {
+                    previouslySelectedOption.classList.remove('selected');
+                    previouslySelectedOption.style.backgroundColor = ''; // Reset background color
+                }
             }
-            selectedOption = optionId;
-            document.getElementById(optionId).style.backgroundColor = '#c0e0f4';
-            castVoteButton.disabled = false;
+            selectedOption = candidateName; // Set the selected option to the candidate's name
+            optionElement.classList.add('selected');
+            optionElement.style.backgroundColor = '#c0e0f4'; // Highlight the selected option
+            castVoteButton.disabled = false; // Enable the Cast Vote button
         }
 
-        function castVote() {
+
+
+
+        // Clear existing options before adding new ones
+        voteOptionsContainer.innerHTML = '';
+
+        // Now append vote options using the modified `addVoteOption` function
+        voteOptions.forEach(addVoteOption);
+
+
+
+
+        async function castVote() {
             if (!selectedOption) {
                 alert('Please select an option to vote for.');
                 return;
             }
-            // Here you would add the code to interact with the smart contract to cast the vote
-            console.log(`Vote cast for option: ${selectedOption}`);
-            // Show result or confirmation
-            document.getElementById('result').innerText = `Vote for ${selectedOption} has been cast.`;
+
+            if (!window.ethereum) {
+                alert('Please install MetaMask to interact.');
+                return;
+            }
+
+            // Display a message indicating that the vote is being processed
+            document.getElementById('result').innerText = 'Casting your vote...';
             document.getElementById('result').style.display = 'block';
+
+            try {
+                const provider = new ethers.providers.Web3Provider(window.ethereum);
+                const signer = provider.getSigner();
+                const votingContract = new ethers.Contract(contractAddress, contractABI, signer);
+
+                // Ensure `selectedOption` contains the candidate's name as a string
+                const transactionResponse = await votingContract.vote(selectedOption);
+
+                // Update UI to indicate transaction is pending
+                document.getElementById('result').innerText = 'Transaction submitted, waiting for confirmation...';
+                await transactionResponse.wait(); // Wait for the transaction to be mined
+
+                // Show result or confirmation
+                document.getElementById('result').innerText = `Vote for ${selectedOption} has been cast successfully.`;
+                document.getElementById('result').style.display = 'block';
+
+                // Optionally, reset selected option and disable the vote button again
+                selectedOption = null;
+                document.getElementById('castVote').disabled = true;
+            } catch (error) {
+                console.error('Failed to cast vote:', error);
+                alert('Failed to cast vote. See console for more details.');
+            }
         }
 
         // Add the vote options to the page
-        voteOptions.forEach(addVoteOption);
-        castVoteButton.onclick = castVote;
+        // voteOptions.forEach(addVoteOption);
+        // castVoteButton.onclick = castVote;
 
         async function getPublicKey(signer) {
             // This is a method of retrieving the public key by signing a message
@@ -276,6 +375,50 @@
                 publicKeyDisplay.style.display = 'block';
             }
         }
+
+
+
+        async function startVoting() {
+            if (!window.ethereum) {
+                alert('Please install MetaMask to interact.');
+                return;
+            }
+
+            try {
+                const provider = new ethers.providers.Web3Provider(window.ethereum);
+                await provider.send("eth_requestAccounts", []);
+                const signer = provider.getSigner();
+                const votingContract = new ethers.Contract(contractAddress, contractABI, signer);
+
+                const voteMinutes = 60; // Duration of the voting period in minutes
+                await votingContract.startVote(voteMinutes);
+                alert('Voting has started successfully!');
+            } catch (error) {
+                console.error('Failed to start voting:', error);
+                alert('Failed to start voting. See console for more details.');
+            }
+        }
+
+        castVoteButton.addEventListener('click', castVote);
+        startVoteButton.addEventListener('click', startVoting);
+
+        async function checkVotingStatus() {
+            const provider = new ethers.providers.Web3Provider(window.ethereum);
+            const contract = new ethers.Contract(contractAddress, contractABI, provider);
+            const isVotingLive = await contract.votingLive();
+            return isVotingLive;
+        }
+
+        // Use this function before allowing the user to start voting
+        checkVotingStatus().then(isVotingLive => {
+            if (isVotingLive) {
+                alert("Voting is already active. You cannot start a new vote at this time.");
+                // Optionally, disable the start vote button or show a timer
+            } else {
+                // Enable the start vote button
+            }
+        });
+
 
         async function connectWallet() {
             if (typeof window.ethereum !== 'undefined') {
@@ -295,6 +438,7 @@
 
         connectWalletButton.onclick = connectWallet;
 
+
         readPublicKeyButton.onclick = async () => {
             if (!selectedAddress) {
                 console.error('Please connect your wallet first.');
@@ -306,4 +450,5 @@
         };
     </script>
 </body>
+
 </html>
