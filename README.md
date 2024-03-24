@@ -23,7 +23,7 @@ ChainCredID is accessible through its dedicated portals:
 - **Admin Portal**: [Admin Portal](https://chaincredid.pages.dev/admin)
 
 - **VotingHub**: [VotingHub](https://chaincredid.pages.dev/voting)
-- Important VotingHub Chainlink Upkeep is working. Which is why StartVoting button display a message "Voting Already Active". Which means it's working properly!
+  Important VotingHub Chainlink Upkeep is working. Which is why StartVoting button display a message "Voting Already Active". Which means it's working properly! Check the images below or the Console. 
 
   
 ## Overview
