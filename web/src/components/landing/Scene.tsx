@@ -18,7 +18,7 @@ export function Scene({
 }: {
   stageRef: React.RefObject<HTMLDivElement | null>;
   credential: string;
-  title: string;
+  title: ReactNode;
   brief: ReactNode;
   detail?: ReactNode;
   onReplay: () => void;
@@ -26,7 +26,7 @@ export function Scene({
   children: ReactNode;
 }) {
   return (
-    <section className="grid gap-8 py-14 md:grid-cols-[minmax(0,5fr)_minmax(0,7fr)] md:gap-12 [&>*]:min-w-0">
+    <section className="grid gap-8 py-14 lg:grid-cols-[minmax(0,5fr)_minmax(0,7fr)] lg:gap-12 [&>*]:min-w-0">
       <div className="max-w-md">
         <p className="eyebrow">{credential}</p>
         <h3 className="mt-3 text-2xl font-semibold leading-tight md:text-[1.75rem]">{title}</h3>

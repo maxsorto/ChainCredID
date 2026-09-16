@@ -25,7 +25,11 @@ export function SceneExpiry() {
     <Scene
       stageRef={ref}
       credential="OPERATOR_KYC"
-      title="Credentials expire on their own, and a re-issue keeps the history."
+      title={
+        <>
+          Credentials expire on their own, and a <span className="whitespace-nowrap">re-issue</span> keeps the history.
+        </>
+      }
       brief={
         <>
           An issuer grants operator KYC for 30 days. Nothing needs to revoke it: on day 31 the same read returns false
@@ -71,7 +75,7 @@ export function SceneExpiry() {
             <div className="flex flex-col items-center gap-2 text-center">
               <Seal key={`b-${second}`} state={second} size={96} />
               <p className="font-mono text-[11px] text-mute">{second === "active" ? `${UID_2} · refUID ${UID_1}` : " "}</p>
-              {second === "active" ? <Status state="active" /> : <span className="font-mono text-[10px] text-mute">re-issue</span>}
+              {second === "active" ? <Status state="active" /> : <span className="font-mono text-[10px] text-mute"><span className="whitespace-nowrap">re-issue</span></span>}
             </div>
           </div>
         </Card>

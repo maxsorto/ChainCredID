@@ -30,14 +30,25 @@ export function Hero() {
   return (
     <section className="mx-auto grid w-full max-w-6xl gap-10 px-5 pb-16 pt-14 md:grid-cols-[minmax(0,7fr)_minmax(0,5fr)] md:items-center md:pt-20">
       <div>
-        <p className="eyebrow">Credential registry on EAS · Base Sepolia · testnet</p>
+        <ul className="flex flex-wrap gap-2" aria-label="Project facts">
+          {["Credential registry on EAS", "Base Sepolia", "Testnet"].map((t) => (
+            <li key={t} className="eyebrow rounded border border-line px-2 py-1">
+              {t}
+            </li>
+          ))}
+        </ul>
         <h1 className="mt-5 text-[2.6rem] font-semibold leading-[1.02] tracking-tight md:text-[3.6rem]">
           Know who you are paying before the money&nbsp;moves.
         </h1>
         <p className="mt-6 max-w-xl text-lg leading-relaxed text-ink-2">
-          ChainCredID is an issuer-signed credential registry on the Ethereum Attestation Service. A human, a payments
-          backend, or an AI agent asks one question about a wallet, <span className="font-mono text-[0.95em]">hasCredential(subject,&nbsp;type)</span>,
-          and gets an answer computed from EAS state: not from this app, not from a database.
+          ChainCredID is an <span className="whitespace-nowrap">issuer-signed</span> credential registry on the Ethereum
+          Attestation Service. A human, a payments backend, or an AI agent asks one question about a wallet and gets an
+          answer computed from EAS state: not from this app, not from a&nbsp;database.
+        </p>
+        <p className="mt-4 inline-block whitespace-nowrap rounded-md border border-line bg-panel px-3 py-2 font-mono text-[12px] text-ink sm:text-[13px]">
+          hasCredential(subject, type) <span className="text-mute">→</span> <span className="text-ok">true</span>
+          <span className="text-mute"> | </span>
+          <span className="text-bad">false</span>
         </p>
         <div className="mt-8 flex flex-wrap items-center gap-3">
           <Link
@@ -62,9 +73,9 @@ export function Hero() {
           </a>
         </div>
         <p className="mt-8 max-w-xl text-sm leading-relaxed text-mute">
-          Won a top prize at ETH Latam 2024 as a citizen-rights demo. Rebuilt in 2026 around agent and operator
-          credentials: Foundry, 23 tests against real EAS bytecode, Next.js&nbsp;16, wagmi&nbsp;3. Not audited, not on
-          mainnet.
+          Won a top prize at ETH Latam 2024 as a <span className="whitespace-nowrap">citizen-rights</span> demo. Rebuilt in
+          2026 around agent and operator credentials: Foundry, 23 tests against real EAS bytecode, Next.js&nbsp;16,
+          wagmi&nbsp;3. Not audited, not on&nbsp;mainnet.
         </p>
       </div>
 

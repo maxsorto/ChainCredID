@@ -12,7 +12,7 @@ export function Flow() {
   return (
     <section className="mx-auto w-full max-w-6xl px-5 py-16">
       <div className="rule" />
-      <div className="grid gap-8 pt-8 md:grid-cols-[minmax(0,4fr)_minmax(0,8fr)]">
+      <div className="grid gap-8 pt-8 lg:grid-cols-[minmax(0,4fr)_minmax(0,8fr)]">
         <div>
           <p className="eyebrow">How it works</p>
           <h2 className="mt-3 text-2xl font-semibold md:text-3xl">One writer, one schema, any&nbsp;reader.</h2>
@@ -30,7 +30,7 @@ export function Flow() {
               The answer is derived from the attestation&apos;s revocation and expiration times on EAS.
             </li>
             <li>
-              <b className="text-ink">Re-issue.</b> A new attestation links to the old one through{" "}
+              <b className="text-ink"><span className="whitespace-nowrap">Re-issue</span>.</b> A new attestation links to the old one through{" "}
               <code className="font-mono text-[0.9em]">refUID</code>, so a credential&apos;s history is a chain.
             </li>
           </ul>

@@ -36,7 +36,7 @@ export function ScenePay() {
       onReplay={replay}
       done={done}
     >
-      <div className="grid gap-4 sm:grid-cols-[minmax(0,1fr)_200px]">
+      <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_200px]">
         <Terminal title="agent · verify_credential" lines={LINES} step={step} />
         <Card className="flex flex-col items-center justify-between gap-3 text-center">
           <div>

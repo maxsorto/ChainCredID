@@ -17,7 +17,7 @@ export default function LandingPage() {
         <div className="pt-8">
           <p className="eyebrow">Four credentials, four situations</p>
           <h2 className="mt-3 max-w-2xl text-2xl font-semibold md:text-3xl">
-            The contract is type-agnostic. These are the credentials the demo issues, each shown doing its&nbsp;job.
+            The contract is <span className="whitespace-nowrap">type-agnostic</span>. These are the credentials the demo issues, each shown doing its&nbsp;job.
           </h2>
         </div>
         <div className="divide-y divide-line">
@@ -30,7 +30,7 @@ export default function LandingPage() {
 
       <section className="mx-auto w-full max-w-6xl px-5 py-16">
         <div className="rule" />
-        <div className="grid gap-8 pt-8 md:grid-cols-[minmax(0,4fr)_minmax(0,8fr)]">
+        <div className="grid gap-8 pt-8 lg:grid-cols-[minmax(0,4fr)_minmax(0,8fr)]">
           <div>
             <p className="eyebrow">Why this exists in 2026</p>
             <h2 className="mt-3 text-2xl font-semibold md:text-3xl">The new identity problem is agents, not&nbsp;citizens.</h2>
@@ -48,7 +48,7 @@ export default function LandingPage() {
             </p>
             <p>
               <b className="text-ink">Know Your Agent needs a claims layer.</b> Identity says who. Reputation says how
-              they behaved. ChainCredID is the third piece: an issuer-signed, revocable claim that a wallet passed a
+              they behaved. ChainCredID is the third piece: an <span className="whitespace-nowrap">issuer-signed</span>, revocable claim that a wallet passed a
               check, with the evidence linked and the history&nbsp;kept.
             </p>
           </div>

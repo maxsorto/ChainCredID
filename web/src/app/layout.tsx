@@ -33,7 +33,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
         <Providers initialState={initialState}>
           <header className="sticky top-0 z-40 border-b border-line bg-paper/85 backdrop-blur">
             <div className="mx-auto flex w-full max-w-6xl items-center justify-between gap-4 px-5 py-3">
-              <nav className="flex items-center gap-6 text-sm">
+              <nav className="flex items-center gap-4 text-sm sm:gap-6">
                 <Link href="/" className="display flex items-center gap-2 text-[15px] font-semibold tracking-tight">
                   <span aria-hidden className="inline-block size-3 rounded-full border-2 border-ink" />
                   ChainCredID

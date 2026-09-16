@@ -32,7 +32,7 @@ export function SceneReaders() {
       onReplay={replay}
       done={done}
     >
-      <div className="grid gap-4 sm:grid-cols-2">
+      <div className="grid gap-4 lg:grid-cols-2">
         <Card className="flex flex-col">
           <p className="eyebrow">reader A · /verify</p>
           <div className="mt-3 rounded-md border border-line px-3 py-2 font-mono text-[11px] text-ink-2">{SUBJECT}</div>

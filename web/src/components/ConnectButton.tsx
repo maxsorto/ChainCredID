@@ -25,7 +25,14 @@ export function ConnectButton() {
         disabled={!connector || connect.isPending}
         onClick={() => connector && connect.mutate({ connector })}
       >
-        {connect.isPending ? "Connecting…" : "Connect wallet"}
+        {connect.isPending ? (
+          "Connecting…"
+        ) : (
+          <>
+            <span className="sm:hidden">Connect</span>
+            <span className="hidden sm:inline">Connect wallet</span>
+          </>
+        )}
       </button>
     );
   }
