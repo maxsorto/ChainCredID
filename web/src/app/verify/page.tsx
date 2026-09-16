@@ -31,7 +31,7 @@ export default function VerifyPage() {
   });
 
   return (
-    <div className="space-y-8">
+    <div className="mx-auto w-full max-w-4xl space-y-8 px-4 py-10">
       <section className="space-y-3">
         <h1 className="text-2xl font-semibold tracking-tight">Verify a credential</h1>
         <p className="max-w-2xl text-sm opacity-80">

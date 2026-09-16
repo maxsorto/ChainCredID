@@ -53,7 +53,7 @@ export default function IssuePage() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="mx-auto w-full max-w-4xl px-4 py-10 space-y-6">
       <section className="space-y-2">
         <h1 className="text-2xl font-semibold tracking-tight">Issue or revoke</h1>
         <p className="max-w-2xl text-sm opacity-80">
@@ -123,5 +123,5 @@ export default function IssuePage() {
 }
 
 const field = "w-full rounded-md border border-black/15 bg-transparent px-3 py-2 font-mono text-sm dark:border-white/20";
-const primary = "rounded-md bg-foreground px-4 py-2 text-sm font-medium text-background disabled:opacity-40";
+const primary = "rounded-md bg-ink px-4 py-2 text-sm font-medium text-paper disabled:opacity-40";
 const secondary = "rounded-md border border-black/15 px-4 py-2 text-sm font-medium disabled:opacity-40 dark:border-white/20";
