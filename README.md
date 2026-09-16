@@ -51,7 +51,7 @@ predecessor through `refUID`, so the history of a credential is a chain on EAS.
 
 ```
 contracts/   Foundry project: src/, test/, script/, foundry.toml (solc 0.8.28, OZ 5.6.1, EAS 1.4.0)
-web/         Next.js 16 app: /  (verify any wallet)   /issue  (issuer console)
+web/         Next.js 16 app: /  (landing, animated examples)   /verify  (any wallet)   /issue  (issuer console)
 .github/     CI: forge fmt/build/test + tsc/eslint/next build
 ASSESSMENT.md  Honest state-of-the-repo review written before the 2026 rework
 ```
@@ -76,7 +76,7 @@ forge script script/Deploy.s.sol --rpc-url anvil --broadcast \
 cd ../web
 cp .env.example .env.local     # paste the ChainCredID address into NEXT_PUBLIC_REGISTRY_ADDRESS_LOCAL
 npm install
-npm run dev                    # http://localhost:3000, connect an injected wallet on chain 31337
+npm run dev                    # http://localhost:3000 (landing), /verify with an injected wallet on chain 31337
 ```
 
 Deployer is admin and issuer by default; the `/issue` page shows whether your connected wallet holds
