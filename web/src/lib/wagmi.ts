@@ -1,4 +1,4 @@
-import { cookieStorage, createConfig, createStorage, http } from "wagmi";
+import { createConfig, http } from "wagmi";
 import { baseSepolia, foundry } from "wagmi/chains";
 import { injected } from "wagmi/connectors";
 
@@ -12,7 +12,6 @@ export const wagmiConfig = createConfig({
   chains,
   connectors: [injected()],
   ssr: true,
-  storage: createStorage({ storage: cookieStorage }),
   transports: {
     [baseSepolia.id]: http(process.env.NEXT_PUBLIC_BASE_SEPOLIA_RPC_URL),
     [foundry.id]: http("http://127.0.0.1:8545"),

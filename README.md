@@ -13,7 +13,7 @@ database. Credentials are typed, revocable, and expiring, and every re-issue lin
 
 | | |
 |---|---|
-| Landing page (what it does, four animated examples) | `/` (Vercel URL: to be added after deploy) |
+| Landing page (what it does, four animated examples) | `/` https://chaincredid.pages.dev |
 | Verify any wallet | `/verify` |
 | Issuer console | `/issue` |
 | Source | https://github.com/maxsorto/ChainCredID |
@@ -199,7 +199,7 @@ cast wallet import deployer --interactive    # keystore, never a raw key in env
 forge script script/Deploy.s.sol --rpc-url base_sepolia --broadcast --account deployer --sender <ADDR>
 ```
 
-Then set `NEXT_PUBLIC_REGISTRY_ADDRESS_BASE_SEPOLIA` in `web/.env.local` (and in the Vercel project).
+Then set `NEXT_PUBLIC_REGISTRY_ADDRESS_BASE_SEPOLIA` in `web/.env.local` (and in the Cloudflare Pages project).
 Attestations appear on [base-sepolia.easscan.org](https://base-sepolia.easscan.org). The landing page footer
 links to the registry's EASScan page once that address is set.
 
@@ -213,7 +213,7 @@ stack can ask an EAS-backed question before it settles.
    "check `MERCHANT_VERIFIED` before paying this x402 endpoint," and a backend can ask "is this agent's
    operator KYC'd?" with one tool call.
 2. **Base Sepolia deployment**, registry address and EASScan schema link in this README, and the web app on
-   Vercel.
+   Cloudflare Pages.
 3. **ERC-8004 binding**: accept an `agentId` as the subject, resolve it through the ERC-8004 Identity
    Registry to the agent wallet, and let `AGENT_REGISTERED` reference the registration file hash.
    Reputation stays on ERC-8004; issuer-signed claims stay here.
