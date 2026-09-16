@@ -1,15 +1,22 @@
-node_modules
-node_modules
+# secrets
 .env
+.env.*
+!.env.example
 
-# Hardhat files
-/cache
-/artifacts
+# node
+node_modules/
 
-# TypeChain files
-/typechain
-/typechain-types
+# foundry
+contracts/out/
+contracts/cache/
+contracts/broadcast/*/31337/
+contracts/broadcast/**/dry-run/
 
-# solidity-coverage files
-/coverage
-/coverage.json
+# next
+web/.next/
+web/out/
+web/next-env.d.ts
+*.tsbuildinfo
+
+# os / editor
+.DS_Store
