@@ -1,89 +1,157 @@
 # ChainCredID
 
-ChainCredID is a decentralized application (dApp) designed to provide secure and verifiable attestation services on the Ethereum blockchain, leveraging the advanced capabilities of Scroll L2 for scalability and efficiency, alongside the Ethereum Attestation Service (EAS) for robust attestation processing.
+Issuer-signed, revocable, expiring credentials for wallets, including the wallets AI agents
+transact from, built on the [Ethereum Attestation Service](https://attest.org) (EAS). An issuer with
+`ISSUER_ROLE` calls `issue(subject, credentialType, expiration, evidenceURI)`; the registry writes a
+typed EAS attestation under a closed schema; anyone (a dApp, a payments backend, an agent's tool) calls
+`hasCredential(subject, type)` and gets a yes/no that is computed from EAS state, not from the
+registry's own bookkeeping. Won a top prize at [ETH Latam 2024](https://taikai.network/en/ethlatam/hackathons/honduras)
+(San Pedro Sula, Honduras) as a citizen-rights demo; re-cut in September 2026 around agent and operator
+credentials.
 
-## Technologies Used
+> Testnet project. Nothing here has been audited or deployed to mainnet.
 
-- **Scroll L2**: A layer 2 scaling solution for Ethereum that enhances transaction speed and reduces costs, making it ideal for dApps requiring high throughput.
-- **Ethereum Attestation Service (EAS)**: A decentralized protocol for creating, storing, and verifying off-chain data with on-chain attestations, providing a secure and immutable verification mechanism.
-- **Chainlink Automations**: Automate your smart contract with Chainlink’s hyper-reliable Automation network.
+## Architecture
 
-## Contract Address
+```mermaid
+flowchart LR
+  subgraph offchain [Off-chain]
+    Issuer[Issuer wallet<br/>ISSUER_ROLE]
+    Web[web/ Next.js 16<br/>wagmi 3 + viem 2]
+    Agent[Agent / payments backend<br/>roadmap: MCP verify tool]
+  end
 
-The smart contract for ChainCredID is deployed at `0x981F5a4F664A7c7cC601bEd121505B6d2fBD3C80` on the Scroll Layer 2 (Sepolia Testnet) network. You can verify the contract details and source code at [Sepolia ScrollScan](https://sepolia.scrollscan.dev/address/0x981f5a4f664a7c7cc601bed121505b6d2fbd3c80#code).
+  subgraph chain [Base Sepolia / anvil]
+    Registry[ChainCredID.sol<br/>AccessControl<br/>issue / revoke / hasCredential]
+    Resolver[RegistryOnlyResolver.sol<br/>EAS SchemaResolver]
+    EAS[(EAS predeploy<br/>0x4200...0021)]
+    Schema[Schema<br/>bytes32 credentialType,<br/>string metadataURI]
+  end
 
-You can check the sample schema we used on this project [here](https://scroll-sepolia.easscan.org/schema/view/0x6f0ae5ac9195bd29d2e9942d12d313d157da57ce56be88ab2c97bf94d39f6f5e).
+  Issuer -- issue / revoke --> Web -- tx --> Registry
+  Registry -- attest / revoke --> EAS
+  EAS -- onAttest / onRevoke --> Resolver
+  Resolver -. attester == registry? .-> EAS
+  Schema --- EAS
+  Web -- getCredential --> Registry -- getAttestation --> EAS
+  Agent -- hasCredential --> Registry
+```
 
-## Access the Application
+**Why a resolver?** Anyone can attest under any EAS schema. `RegistryOnlyResolver` rejects attestations
+whose attester is not the registry, so a verifier who sees an attestation with this schema UID knows it
+went through the issuer-gated path. Credentials are still plain EAS attestations, so EASScan, indexers
+and other contracts can consume them without knowing about ChainCredID.
 
-ChainCredID is accessible through its dedicated portals:
+**Why not just a mapping?** The 2024 version stored booleans in its own storage and only *also* wrote to
+EAS. The 2026 version stores one pointer (`subject => type => attestation UID`) and derives
+active/inactive from the attestation's `revocationTime` and `expirationTime`. Re-issues link to their
+predecessor through `refUID`, so the history of a credential is a chain on EAS.
 
-- **Home Page**: [chaincredid.pages.dev](https://chaincredid.pages.dev)
-- **User Portal**: [User Portal](https://chaincredid.pages.dev/user)
-- **Admin Portal**: [Admin Portal](https://chaincredid.pages.dev/admin)
+## Repository layout
 
-- **VotingHub**: [VotingHub](https://chaincredid.pages.dev/voting)
-  
-Important VotingHub Chainlink Upkeep is working. Which is why StartVoting button display a message "Voting Already Active". Which means it's working properly! You need to let some time pass because Chainlink Upkeep doesn't allow to create another voting if there's one active. See image bellow.
+```
+contracts/   Foundry project: src/, test/, script/, foundry.toml (solc 0.8.28, OZ 5.6.1, EAS 1.4.0)
+web/         Next.js 16 app: /  (verify any wallet)   /issue  (issuer console)
+.github/     CI: forge fmt/build/test + tsc/eslint/next build
+ASSESSMENT.md  Honest state-of-the-repo review written before the 2026 rework
+```
 
-  
-## Overview
+## Run it locally
 
-ChainCredID offers a user-friendly interface allowing individuals to have various rights and credentials attested within a secure and transparent environment. Utilizing the power of smart contracts, users can request attestations for rights such as voting, drinking, or entering the country. Administrators, on the other hand, can manage and verify these attestations through the admin portal, ensuring a robust and trustless verification process.
+Prereqs: [Foundry](https://getfoundry.sh) (stable) and Node 24 (`.node-version`; Node 22 also works).
 
-## Getting Started
+```bash
+git clone --recursive https://github.com/maxsorto/ChainCredID.git
+cd ChainCredID
 
-To interact with ChainCredID, visit the home page and choose the relevant portal based on your role (user or admin). Ensure you have a compatible Ethereum wallet (e.g., MetaMask) connected to the Sepolia test network for transactions.
+# 1. contracts
+cd contracts
+forge test                     # 23 tests incl. fuzz, against real EAS bytecode deployed in setUp
+anvil                          # in a second terminal
+forge script script/Deploy.s.sol --rpc-url anvil --broadcast \
+  --unlocked --sender 0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266   # anvil account #0, no key needed
+# prints EAS, SchemaRegistry, Resolver, ChainCredID addresses and the schema UID
 
-For users wishing to have their rights attested, navigate to the user portal, where you can submit your requests. Admins can review and process these requests via the admin portal, leveraging the functionalities provided by the Ethereum Attestation Service to ensure each attestation's integrity and verifiability.
+# 2. web
+cd ../web
+cp .env.example .env.local     # paste the ChainCredID address into NEXT_PUBLIC_REGISTRY_ADDRESS_LOCAL
+npm install
+npm run dev                    # http://localhost:3000, connect an injected wallet on chain 31337
+```
 
-# Citizen Database Project
+Deployer is admin and issuer by default; the `/issue` page shows whether your connected wallet holds
+`ISSUER_ROLE`. To grant another issuer:
 
-## Overview
+```bash
+cast send <REGISTRY> "grantRole(bytes32,address)" $(cast keccak ISSUER_ROLE) <WALLET> \
+  --rpc-url anvil --unlocked --from 0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266
+```
 
-For our Citizen Database, we utilized Chainlink to automate the voting periods.
+### Base Sepolia
 
-Voting is initiated from the front end, with a set duration for the voting process. Remarkably, Chainlink Automations manage the voting period automatically, eliminating the need for manual intervention.
+EAS is an OP Stack predeploy, so no EAS deployment is needed:
 
-### Chainlink Autommation Addresses
+```bash
+cd contracts && cp .env.example .env    # EAS_ADDRESS / SCHEMA_REGISTRY_ADDRESS are prefilled
+cast wallet import deployer --interactive   # keystore, never a raw key in env
+forge script script/Deploy.s.sol --rpc-url base_sepolia --broadcast --account deployer --sender <ADDR>
+```
 
-- **Upkeep Address:** `0xc15F94B42F86f7c549c396A2AA1616e1167A5D25`
-- **Voting Contract Address (ETH SEPOLIA):** `0xf8e81D47203A594245E36C48e151709F0C19fBe8`
+Then set `NEXT_PUBLIC_REGISTRY_ADDRESS_BASE_SEPOLIA` in `web/.env.local`. Attestations show up on
+[base-sepolia.easscan.org](https://base-sepolia.easscan.org).
 
-## Benefits of Using Chainlink Automation
+## Contract surface
 
-- **Decentralization:** Enhances security and reliability by eliminating centralized points of failure.
-- **Efficiency:** Saves time and reduces the DevOps workload through optimized infrastructure for smart contract execution.
-- **Security:** Bolsters protocol security by signing on-chain transactions via the Chainlink Automation Network, thus avoiding the exposure of private keys.
-- **Cost Efficiency:** Lowers gas fees and maintains them within predictable ranges.
-- **Reliability:** Features a redesigned algorithm for dependable execution of high-frequency functions.
-- **Scheduling:** Offers a no-code UI for the timely scheduling of smart contract upkeep jobs, ideal for managing voting periods.
-- **Off-chain Computation Improvements:** Minimizes reverts and conserves funds with an enhanced off-chain simulation process.
+| Function | Who | What |
+|---|---|---|
+| `issue(subject, type, expiration, uri) -> uid` | `ISSUER_ROLE` | Revocable EAS attestation, payload `abi.encode(type, uri)`, `refUID` = previous credential of same type. Reverts if an active one exists. |
+| `revoke(subject, type)` | `ISSUER_ROLE` | Revokes on EAS. UID is kept for audit. |
+| `hasCredential(subject, type) -> bool` | anyone | Exists, not revoked, not expired (read from EAS). |
+| `getCredential(subject, type)` | anyone | Full `Attestation` + decoded URI + `active`. |
+| `credentialTypeId(name) -> bytes32` | anyone | `keccak256(bytes(name))`, so UIs and agents agree on ids. |
 
-## Integration with Ethereum Attestations Service
+Credential types are open-ended `bytes32`s. The demo UI offers `OPERATOR_KYC`, `AGENT_REGISTERED`,
+`SPEND_LIMIT_USDC_1000`, `MERCHANT_VERIFIED`.
 
-We aimed to integrate this with our Ethereum Attestations Service on Scroll. However, Chainlink Automations have not yet been introduced to the Scroll network. We plan to utilize Chainlink Automation for attestations in the future. We implemented a Voting contract on Ethereum Sepolia to enhance our dApp's functionalities and demonstrate the application of Chainlink Automation in voting processes. Integrating Chainlink Automation for attestation expiration presents challenges, as it typically responds to on-chain state changes, whereas attestation expiration depends on time rather than state.
+## 2024 vs 2026
 
-## Development and Future Plans
+| | Hackathon (March 2024) | This branch (September 2026) |
+|---|---|---|
+| Chain | Scroll Sepolia | Base Sepolia (EAS predeploy, Coinbase Verifications live there) + anvil |
+| Toolchain | Hardhat 2.22, template `Lock.sol` still in tree, EAS dep missing so it did not compile | Foundry (forge 1.5), solc 0.8.28, OZ 5.6.1, EAS 1.4.0 as submodules |
+| Contract | `CitizenDatabase`: 3 hardcoded booleans, no access control, guard let `false` through, attestation payload was just the address, non-revocable, verified from local mapping | `ChainCredID`: generic typed credentials, `AccessControl`, revocable + expiring, typed payload, verification reads EAS, closed schema via resolver |
+| Tests | Hardhat template tests for `Lock` only | 23 Forge tests (unit + fuzz) against real EAS bytecode |
+| Frontend | 4 static HTML files, ethers v5 UMD from a dead CDN, inline 5 KB ABI, MetaMask-only | Next.js 16 / React 19 / TypeScript, wagmi 3 + viem 2, human-readable ABI, any injected wallet |
+| Secrets | none leaked (checked full history) | addresses via `NEXT_PUBLIC_*` env; deploy via keystore |
+| CI | none | GitHub Actions: contracts + web |
+| Voting / Chainlink Automation | separate demo for the sponsor track, source never merged to `main` | dropped; see git tag `hackathon-2024` |
 
-Our commits demonstrate our successful integration of Chainlink Automations, though we continue to explore other Chainlink services. We even managed to set up our own Chainlink Node on Google Cloud. Given the time constraints and the associated costs (Google Cloud is expensive), our ambitions remain high for fully leveraging Chainlink Functions to connect to a database and further enhance our dApp's features.
+The 2024 code is preserved at tag `hackathon-2024`. The full review is in [ASSESSMENT.md](./ASSESSMENT.md).
 
-We are committed to advancing our project, hopeful that it will attract government interest.
+## Roadmap
 
-### Chainlink Node Running on Google Cloud
+The direction recommended in the assessment: **credentials for AI agents and their operators**, i.e.
+"Know Your Agent" as an EAS primitive that a payments stack can query before settling.
 
-> ![Chainlink Node running on Google Cloud](https://github.com/maxsorto/ChainCredID/blob/4efe22ab317d711e7e21604fc118e40f23082551/front/assets/images/chainlinkNode.png)
+1. **MCP verifier** (`mcp/`): stdio MCP server exposing `verify_credential`, `list_credentials` and
+   `issue_credential` (testnet, issuer key from env), so a Claude / OpenClaw / Hermes agent can gate its
+   own actions ("check `MERCHANT_VERIFIED` before paying this x402 endpoint") and a backend can ask
+   "is this agent's operator KYC'd?" with one tool call.
+2. **ERC-8004 binding**: accept an `agentId` as the subject, resolve it through the ERC-8004 Identity
+   Registry to the agent wallet, and let `AGENT_REGISTERED` reference the registration file hash.
+   Reputation stays on ERC-8004; issuer-signed claims stay here.
+3. **Self-serve human credentials**: mint `OPERATOR_KYC` / age / residency from a zkPassport or Self
+   proof instead of an admin, so the human side of the trust chain does not depend on a trusted issuer.
+4. **Passkey / smart-account UX**: EIP-7702 or ERC-4337 accounts with session keys so the agent wallet
+   the credential attaches to is the same account that carries spend policy.
+5. Base Sepolia deployment + EASScan schema link in this README, and a redeploy of the web app to
+   `chaincredid.pages.dev`.
 
->![UpkeepWorks!VotingAlreadyActive](https://github.com/maxsorto/ChainCredID/blob/3eaed8326c44a6dbe8e9b2e897a833bd4c63b94e/front/assets/images/VotingActive.png)
-> ![VotingAlreadyActive](https://github.com/maxsorto/ChainCredID/blob/3eaed8326c44a6dbe8e9b2e897a833bd4c63b94e/front/assets/images/VotingISActive.png)
+## Team (2024)
 
+Max Sorto (contracts, user/admin portals), Jorge Ramirez (Chainlink Automation voting demo, README),
+cc0mfer (homepage, branding). 2026 rework by Max Sorto.
 
+## License
 
-## Acknowledgements
-
-Finally, we express our gratitude for this engaging opportunity. The support from the sponsors has been invaluable, and we appreciate their responsiveness to our frequent communications. The experience at ETH Latam was thoroughly enjoyable, and we look forward to participating in future events. Let's continue to innovate and build together!
-
-
-## Future Developments
-
-Post-ETH LATAM Hackathon 2024, the ChainCredID team is committed to continuing the development and improvement of the platform. We aim to integrate more features, enhance user experience, and expand the scope of attestable rights, further contributing to the Ethereum community's growth and the broader blockchain-based digital identity management ecosystem.
+MIT
