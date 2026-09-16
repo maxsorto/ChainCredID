@@ -21,7 +21,7 @@ export function ConnectButton() {
     return (
       <button
         type="button"
-        className="rounded-md bg-foreground px-3 py-1.5 text-sm font-medium text-background disabled:opacity-50"
+        className="whitespace-nowrap rounded-md bg-ink px-3 py-1.5 text-sm font-medium text-paper disabled:opacity-50"
         disabled={!connector || connect.isPending}
         onClick={() => connector && connect.mutate({ connector })}
       >

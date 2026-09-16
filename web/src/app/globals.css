@@ -1,26 +1,283 @@
 @import "tailwindcss";
 
+/*
+  ChainCredID design tokens.
+  The page is a registry: paper ground, ink text, and three semantic seal colors that mean
+  exactly one thing each: green = active, rust = revoked/blocked, amber = expired.
+*/
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
-
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --paper: #eef1f4;
+  --paper-2: #e3e8ee;
+  --ink: #0f1626;
+  --ink-2: #3b465c;
+  --mute: #6b7689;
+  --line: rgba(15, 22, 38, 0.12);
+  --line-2: rgba(15, 22, 38, 0.24);
+  --ok: #0f9b6b;
+  --ok-soft: rgba(15, 155, 107, 0.12);
+  --bad: #c2410c;
+  --bad-soft: rgba(194, 65, 12, 0.12);
+  --warn: #b7791f;
+  --warn-soft: rgba(183, 121, 31, 0.14);
+  --cobalt: #2f5bea;
+  --panel: #ffffff;
+  --terminal: #0f1626;
+  --terminal-ink: #dfe6f1;
+  --terminal-mute: #7f8ba3;
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+    --paper: #0b1020;
+    --paper-2: #0f1626;
+    --ink: #e6eaf0;
+    --ink-2: #b7c0cf;
+    --mute: #8390a6;
+    --line: rgba(230, 234, 240, 0.12);
+    --line-2: rgba(230, 234, 240, 0.24);
+    --ok: #2fc48f;
+    --ok-soft: rgba(47, 196, 143, 0.14);
+    --bad: #f0743a;
+    --bad-soft: rgba(240, 116, 58, 0.14);
+    --warn: #e0a83a;
+    --warn-soft: rgba(224, 168, 58, 0.16);
+    --cobalt: #7c9cff;
+    --panel: #121a2e;
+    --terminal: #070b16;
+    --terminal-ink: #dfe6f1;
+    --terminal-mute: #7f8ba3;
   }
 }
 
+@theme inline {
+  --color-paper: var(--paper);
+  --color-paper-2: var(--paper-2);
+  --color-ink: var(--ink);
+  --color-ink-2: var(--ink-2);
+  --color-mute: var(--mute);
+  --color-line: var(--line);
+  --color-line-2: var(--line-2);
+  --color-ok: var(--ok);
+  --color-ok-soft: var(--ok-soft);
+  --color-bad: var(--bad);
+  --color-bad-soft: var(--bad-soft);
+  --color-warn: var(--warn);
+  --color-warn-soft: var(--warn-soft);
+  --color-cobalt: var(--cobalt);
+  --color-panel: var(--panel);
+  --color-terminal: var(--terminal);
+  --color-terminal-ink: var(--terminal-ink);
+  --color-terminal-mute: var(--terminal-mute);
+  --font-sans: var(--font-plex-sans), system-ui, sans-serif;
+  --font-mono: var(--font-plex-mono), ui-monospace, SFMono-Regular, Menlo, monospace;
+  --font-display: var(--font-bricolage), var(--font-plex-sans), system-ui, sans-serif;
+}
+
+html {
+  background: var(--paper);
+  scroll-behavior: smooth;
+}
+
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  overflow-x: clip;
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+::selection {
+  background: var(--ink);
+  color: var(--paper);
+}
+
+:focus-visible {
+  outline: 2px solid var(--cobalt);
+  outline-offset: 3px;
+  border-radius: 4px;
+}
+
+h1,
+h2,
+h3,
+.display {
+  font-family: var(--font-display);
+  text-wrap: balance;
+  letter-spacing: -0.01em;
+}
+
+p,
+li {
+  text-wrap: pretty;
+}
+
+.eyebrow {
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--mute);
+}
+
+/* The hairline that separates registry sections: a rule with a small ink tick at the left. */
+.rule {
+  position: relative;
+  height: 1px;
+  background: var(--line);
+}
+.rule::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: -3px;
+  width: 24px;
+  height: 7px;
+  background: var(--ink);
+}
+
+/* Terminal panels used by the scenes. */
+.term {
+  background: var(--terminal);
+  color: var(--terminal-ink);
+  font-family: var(--font-mono);
+  font-size: 0.8rem;
+  line-height: 1.55;
+  border-radius: 10px;
+  border: 1px solid var(--line-2);
+  overflow-wrap: anywhere;
+}
+.term .m {
+  color: var(--terminal-mute);
+}
+.term .ok {
+  color: var(--ok);
+}
+.term .bad {
+  color: var(--bad);
+}
+.term .warn {
+  color: var(--warn);
+}
+.caret {
+  display: inline-block;
+  width: 0.55em;
+  height: 1em;
+  background: var(--terminal-ink);
+  vertical-align: -0.15em;
+  margin-left: 2px;
+  animation: blink 0.9s steps(1) infinite;
+}
+
+/* ---- motion ---- */
+@keyframes blink {
+  50% {
+    opacity: 0;
+  }
+}
+@keyframes stampIn {
+  0% {
+    opacity: 0;
+    transform: scale(1.45) rotate(-14deg);
+  }
+  55% {
+    opacity: 1;
+    transform: scale(0.94) rotate(-6deg);
+  }
+  75% {
+    transform: scale(1.03) rotate(-7deg);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1) rotate(-7deg);
+  }
+}
+@keyframes strike {
+  from {
+    transform: scaleX(0) rotate(-12deg);
+  }
+  to {
+    transform: scaleX(1) rotate(-12deg);
+  }
+}
+@keyframes dashFlow {
+  to {
+    stroke-dashoffset: -28;
+  }
+}
+@keyframes rise {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+@keyframes pulseRing {
+  0% {
+    transform: scale(0.9);
+    opacity: 0.6;
+  }
+  100% {
+    transform: scale(1.6);
+    opacity: 0;
+  }
+}
+
+.rv {
+  opacity: 0;
+  transform: translateY(14px);
+  transition:
+    opacity 0.7s ease,
+    transform 0.7s ease;
+}
+.rv.vis {
+  opacity: 1;
+  transform: none;
+}
+
+.seal-in {
+  animation: stampIn 0.55s cubic-bezier(0.2, 1.1, 0.3, 1) both;
+}
+.strike-in {
+  animation: strike 0.35s cubic-bezier(0.2, 0.9, 0.3, 1) both;
+  transform-origin: left center;
+}
+.flow {
+  stroke-dasharray: 6 8;
+  animation: dashFlow 1.4s linear infinite;
+}
+.rise {
+  animation: rise 0.5s ease both;
+}
+.pulse-ring {
+  animation: pulseRing 1.2s ease-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+  .rv {
+    opacity: 1;
+    transform: none;
+    transition: none;
+  }
+  .seal-in,
+  .strike-in,
+  .flow,
+  .rise,
+  .pulse-ring,
+  .caret {
+    animation: none;
+  }
+  .strike-in {
+    transform: scaleX(1) rotate(-12deg);
+  }
+  .seal-in {
+    transform: rotate(-7deg);
+    opacity: 1;
+  }
 }
